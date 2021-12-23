@@ -180,9 +180,52 @@ def build_tokenizer(x_train_context):
                                        embedding_dimension=EMBEDDING_DIM,
                                        embedding_model_type="glove")
 
-    tokenizer_X_claim.build_vocab(x_train_context)
-    tokenizer_X_claim_info = tokenizer_X_claim.get_info()
-    print('Tokenizer X info: ', tokenizer_X_claim_info)
+    tokenizer_X.build_vocab(x_train_context)
+    tokenizer_X = tokenizer_X.get_info()
+    print('Tokenizer X info: ', tokenizer_X)
+    return tokenizer_X
+
+
+def convert_text(texts, tokenizer, is_training=False, max_seq_length=None):
+    text_ids = tokenizer.convert_tokens_to_ids(texts)
+    # Padding
+    if is_training:
+        max_seq_length = int(np.quantile([len(seq) for seq in text_ids], 1))
+    else:
+        assert max_seq_length is not None
+
+    text_ids = [seq + [0] * (max_seq_length - len(seq)) for seq in text_ids]
+    text_ids = np.array([seq[:max_seq_length] for seq in text_ids])
+
+    if is_training:
+        return text_ids, max_seq_length
+    else:
+        return text_ids
+
+
+def data_conversion(train_set, val_set, load):
+    x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text = extract_numpy_structures(
+        train_set, val_set)
+    if not load:
+        with open(UTILS_ROOT + 'tokenizer_x.pickle', 'wb') as handle:
+            tokenizer_x = build_tokenizer(x_train_context)
+            pickle.dump(tokenizer_x, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            print('Tokenizer X saved')
+            print()
+        with open(UTILS_ROOT + 'tokenizer_y.pickle', 'wb') as handle:
+            tokenizer_y = build_tokenizer(y_train_text)
+            pickle.dump(tokenizer_y, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            print('Tokenizer y saved')
+            print()
+    else:
+        with open(UTILS_ROOT + 'tokenizer_x.pickle', 'rb') as handle:
+            tokenizer_x = pickle.load(handle)
+            print('Tokenizer X loaded')
+        with open(UTILS_ROOT + 'tokenizer_y.pickle', 'rb') as handle:
+            tokenizer_y = pickle.load(handle)
+            print('Tokenizer y loaded')
+
+    # tokenizer_x.
 
 
 def data_conversion(train_set, val_set):

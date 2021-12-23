@@ -1,11 +1,5 @@
 import json
-import numpy as np
-import pickle
-import pandas as pd
-
-
-DATASET_ROOT = "../datasets/"
-INPUT_FILE_NAME = "raw_dataset"
+from hyper_param import *
 
 
 def json_to_dataframe(input_file):

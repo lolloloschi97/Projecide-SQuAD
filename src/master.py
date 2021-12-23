@@ -1,11 +1,9 @@
-import pandas as pd
 from data_loader import data_loader
 from data_preprocessing import data_preprocessing
 from data_conversion import data_conversion
+from hyper_param import *
 
 
-DATASET_ROOT = "../datasets/"
-TRAIN_SIZE = 0.9
 LOAD_PICKLES = True
 
 
@@ -31,7 +29,9 @@ def main():
         training_df, validation_df = data_loader(TRAIN_SIZE)
         training_df, validation_df = data_preprocessing(training_df, validation_df)
         save_datasets(training_df, validation_df)
-    data_conversion(training_df, validation_df)
+
+    data_conversion(training_df, validation_df, True)
+
 
 
 if __name__ == '__main__':
