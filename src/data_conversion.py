@@ -1,12 +1,10 @@
-import numpy as np
 import gensim
 import gensim.downloader as gloader
 import tensorflow as tf
 from typing import List, Callable, Dict
-from collections import OrderedDict
 import tqdm
-
-EMBEDDING_DIM = 100
+import pickle
+from hyper_param import *
 
 
 def extract_numpy_structures(train_set, val_set):
@@ -54,6 +52,7 @@ def load_embedding_model(model_type: str,
         raise e
 
     return emb_model
+
 
 def check_OOV_terms(embedding_model, word_listing):
     """
@@ -175,10 +174,10 @@ def build_tokenizer(x_train_context):
     tokenizer_args = {
         'oov_token': 1,  # The vocabulary id for unknown terms during text conversion
     }
-    tokenizer_X_claim = KerasTokenizer(tokenizer_args=tokenizer_args,
-                                       build_embedding_matrix=True,
-                                       embedding_dimension=EMBEDDING_DIM,
-                                       embedding_model_type="glove")
+    tokenizer_X = KerasTokenizer(tokenizer_args=tokenizer_args,
+                                 build_embedding_matrix=True,
+                                 embedding_dimension=EMBEDDING_DIM,
+                                 embedding_model_type="glove")
 
     tokenizer_X.build_vocab(x_train_context)
     tokenizer_X = tokenizer_X.get_info()
@@ -227,9 +226,27 @@ def data_conversion(train_set, val_set, load):
 
     # tokenizer_x.
 
+    return 0
 
-def data_conversion(train_set, val_set):
-    x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text = extract_numpy_structures(train_set, val_set)
-    build_tokenizer(x_train_context)
+    """
+    # Train
+    x_train_context, max_seq_length_x_context = convert_text(x_train_context, tokenizer_x, True)
+    x_train_question, max_seq_length_x_question = convert_text(x_train_question, tokenizer_x, True)
+    y_train_text, max_seq_length_y = convert_text(y_train_text, tokenizer_y, True)
+    print("Max token sequence context: {}".format(max_seq_length_x_context))
+    print("Max token sequence question: {}".format(max_seq_length_x_question))
+    print("Max token sequence y: {}".format(max_seq_length_y))
+    print('X context train shape: ', x_train_context.shape)
+    print('X question train shape: ', x_train_question.shape)
+    print('Y train text shape: ', y_train_text.shape)
+
+    # Val
+    x_val_context = convert_text(x_val_context, tokenizer_x, False, max_seq_length_x_context)
+    x_val_question = convert_text(x_val_question, tokenizer_x, False, max_seq_length_x_context)
+    y_val_text = convert_text(y_val_text, tokenizer_y, False, max_seq_length_y)
+    print('X context val shape: ', x_val_context.shape)
+    print('X question val shape: ', x_val_question.shape)
+    print('Y val text shape: ', y_val_text.shape)
 
     return x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text
+    """
