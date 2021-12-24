@@ -115,7 +115,7 @@ class KerasTokenizer(object):
         self.embedding_model_type = embedding_model_type
         self.embedding_model = None
         self.embedding_matrix = None
-        self.key_to_index = None
+        self.vocab = None
 
         tokenizer_args = {} if tokenizer_args is None else tokenizer_args
         assert isinstance(tokenizer_args, dict) or isinstance(tokenizer_args, collections.OrderedDict)
@@ -128,7 +128,7 @@ class KerasTokenizer(object):
         self.tokenizer.fit_on_texts(data)
         print('Fit completed!')
 
-        self.key_to_index = self.tokenizer.word_index
+        self.vocab = self.tokenizer.word_index
 
         if self.build_embedding_matrix:
             print('Loading embedding model! It may take a while...')
@@ -137,12 +137,12 @@ class KerasTokenizer(object):
 
             print('Checking OOV terms...')
             self.oov_terms = check_OOV_terms(embedding_model=self.embedding_model,
-                                             word_listing=list(self.key_to_index.keys()))
+                                             word_listing=list(self.vocab.keys()))
 
             print('Building the embedding matrix...')
             self.embedding_matrix = build_embedding_matrix(embedding_model=self.embedding_model,
-                                                           word_to_idx=self.key_to_index,
-                                                           vocab_size=len(self.key_to_index) + 1,
+                                                           word_to_idx=self.vocab,
+                                                           vocab_size=len(self.vocab) + 1,
                                                            embedding_dimension=self.embedding_dimension,
                                                            oov_terms=self.oov_terms)
             print('Done!')
@@ -154,11 +154,14 @@ class KerasTokenizer(object):
             'embedding_model_type': self.embedding_model_type,
             'embedding_matrix': self.embedding_matrix.shape if self.embedding_matrix is not None else self.embedding_matrix,
             'embedding_model': self.embedding_model,
-            'vocab_size': len(self.key_to_index) + 1,
+            'vocab_size': len(self.vocab) + 1,
         }
 
     def tokenize(self, text):
         return text
+
+    def foo(self):
+        print("aaaaaaaaaaaaaa")
 
     def convert_tokens_to_ids(self, tokens):
         if type(tokens) == str:
@@ -178,10 +181,9 @@ def build_tokenizer(x_train_context):
                                  build_embedding_matrix=True,
                                  embedding_dimension=EMBEDDING_DIM,
                                  embedding_model_type="glove")
-
     tokenizer_X.build_vocab(x_train_context)
-    tokenizer_X = tokenizer_X.get_info()
-    print('Tokenizer X info: ', tokenizer_X)
+    tokenizer_X_info = tokenizer_X.get_info()
+    print('Tokenizer X info: ', tokenizer_X_info)
     return tokenizer_X
 
 
@@ -202,17 +204,17 @@ def convert_text(texts, tokenizer, is_training=False, max_seq_length=None):
         return text_ids
 
 
-def data_conversion(train_set, val_set, load):
+def data_conversion(train_set, val_set, load=False):
     x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text = extract_numpy_structures(
         train_set, val_set)
     if not load:
+        tokenizer_x = build_tokenizer(x_train_context)
         with open(UTILS_ROOT + 'tokenizer_x.pickle', 'wb') as handle:
-            tokenizer_x = build_tokenizer(x_train_context)
             pickle.dump(tokenizer_x, handle, protocol=pickle.HIGHEST_PROTOCOL)
             print('Tokenizer X saved')
             print()
+        tokenizer_y = build_tokenizer(y_train_text)
         with open(UTILS_ROOT + 'tokenizer_y.pickle', 'wb') as handle:
-            tokenizer_y = build_tokenizer(y_train_text)
             pickle.dump(tokenizer_y, handle, protocol=pickle.HIGHEST_PROTOCOL)
             print('Tokenizer y saved')
             print()
@@ -224,11 +226,6 @@ def data_conversion(train_set, val_set, load):
             tokenizer_y = pickle.load(handle)
             print('Tokenizer y loaded')
 
-    # tokenizer_x.
-
-    return 0
-
-    """
     # Train
     x_train_context, max_seq_length_x_context = convert_text(x_train_context, tokenizer_x, True)
     x_train_question, max_seq_length_x_question = convert_text(x_train_question, tokenizer_x, True)
@@ -249,4 +246,3 @@ def data_conversion(train_set, val_set, load):
     print('Y val text shape: ', y_val_text.shape)
 
     return x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text
-    """
