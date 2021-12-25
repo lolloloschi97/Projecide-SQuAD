@@ -226,6 +226,7 @@ def data_conversion(train_set, val_set, load=False):
             tokenizer_y = pickle.load(handle)
             print('Tokenizer y loaded')
 
+    print("Data conversion...")
     # Train
     x_train_context, max_seq_length_x_context = convert_text(x_train_context, tokenizer_x, True)
     x_train_question, max_seq_length_x_question = convert_text(x_train_question, tokenizer_x, True)
@@ -245,4 +246,4 @@ def data_conversion(train_set, val_set, load=False):
     print('X question val shape: ', x_val_question.shape)
     print('Y val text shape: ', y_val_text.shape)
 
-    return x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text
+    return tokenizer_x, x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text

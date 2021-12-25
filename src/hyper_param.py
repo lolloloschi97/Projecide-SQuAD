@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-
 EMBEDDING_DIM = 50
 UTILS_ROOT = "../utils/"
 DATASET_ROOT = "../datasets/"
