@@ -18,7 +18,7 @@ from keras.utils.np_utils import to_categorical
 ###################################
 
 
-LOAD_PICKLES = False
+LOAD_PICKLES = False   # TRUE for Training, FALSE for TESTING
 
 
 def save_datasets(train_df, val_df):
@@ -69,8 +69,10 @@ def main():
     query_max_lenght = x_train_question.shape[1]
     model = model_definition(context_max_lenght, query_max_lenght, tokenizer_x)
 
-    training(model, x_train_question, x_train_context, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
-    # load_predict(x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
+    if not LOAD_PICKLES:
+        training(model, x_train_question, x_train_context, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
+    else:
+        load_predict(x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
 
 
 if __name__ == '__main__':

@@ -88,7 +88,7 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
     # custom_metric = tf.keras.metrics.BinaryCrossentropy() TODO
 
     model.compile(optimizer=custom_optimizer, loss=tf.keras.losses.BinaryCrossentropy(),
-                  metrics=[tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.FalseNegatives()])
+                  metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")])
     model.summary()
 
     return model

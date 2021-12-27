@@ -3,7 +3,6 @@ import gensim.downloader as gloader
 import tensorflow as tf
 from typing import List, Callable, Dict
 import tqdm
-import pickle
 from hyper_param import *
 
 
