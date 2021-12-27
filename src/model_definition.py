@@ -1,12 +1,14 @@
 from hyper_param import *
 import keras
-from keras import layers
-from keras.models import Sequential
 import tensorflow as tf
-from keras import backend as K
-from keras.layers import Dense, Input
-from keras.layers import LSTM, Bidirectional
+from keras.layers import Dense, Input, LSTM, Bidirectional, Dropout
 from keras.models import Model
+
+
+"""
+Hyper parameter for the model
+"""
+DROP_RATE = 0.2
 
 
 def word_embbedding_layer(max_seq_length, tokenizer):
@@ -38,6 +40,10 @@ def build_overall_attention_tensor(context_tensor, context_to_query_tensor, quer
     return tf.concat(values=[context_tensor, context_to_query_tensor, context_c2q, context_q2c], axis=-1)
 
 
+def custom_loss_fn(y_true, y_pred):
+    return 0
+
+
 def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
 
     # initialize two distinct models
@@ -49,8 +55,8 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
     query_embedding = word_embbedding_layer(query_max_lenght, tokenizer_x)(query_input)
 
     # Contextual Embedding Layer
-    context_contestual_embedding = Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(context_embedding)
-    query_contestual_embedding = Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_embedding)
+    context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(context_embedding))
+    query_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_embedding))
 
     # Attention Flow Layer
 
@@ -60,12 +66,29 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
 
     # Modeling Layer
 
-    query_context_contextual_tensor = Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(overall_attention_tensor)
-    query_context_contextual_tensor = Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_context_contextual_tensor)
+    query_context_contextual_tensor_1 = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(overall_attention_tensor))
+    query_context_contextual_tensor_2 = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_context_contextual_tensor_1))
 
-    # END
-    place_holder = Dense(1)(query_context_contextual_tensor)  # FIXME
-    #  print
-    model = keras.Model(inputs=[context_input, query_input], outputs=place_holder)
-    model.compile()
-    print(model.summary())
+    # Output Layer
+
+    # The Dense layer behaviour, in the following configuration, is the same of a vector by matrix product. (trainable)
+    dense_start_layer = Dense(1, use_bias=False, activation='linear')(tf.concat([overall_attention_tensor, query_context_contextual_tensor_1], axis=-1))
+    dense_end_layer = Dense(1, use_bias=False, activation='linear')(tf.concat([overall_attention_tensor, query_context_contextual_tensor_2], axis=-1))
+    dense_start_layer = Dropout(DROP_RATE)(dense_start_layer)
+    dense_end_layer = Dropout(DROP_RATE)(dense_end_layer)
+    prob_start_index = tf.nn.softmax(tf.squeeze(dense_start_layer, -1))
+    prob_end_index = tf.nn.softmax(tf.squeeze(dense_end_layer, -1))
+
+    #  Create the model
+    model = Model(inputs=[context_input, query_input], outputs=[prob_start_index, prob_end_index])
+
+    #  Compile the model with custom compiling settings
+    custom_optimizer = tf.keras.optimizers.Adadelta(learning_rate=0.5, rho=0.999, epsilon=1e-07, name="Adadelta")
+    # custom_loss = custom_loss_fn() TODO
+    # custom_metric = tf.keras.metrics.BinaryCrossentropy() TODO
+
+    model.compile(optimizer=custom_optimizer, loss=tf.keras.losses.BinaryCrossentropy(),
+                  metrics=[tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy(), tf.keras.metrics.FalseNegatives()])
+    model.summary()
+
+    return model
