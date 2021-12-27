@@ -5,6 +5,7 @@ from model_definition import model_definition
 from training import training
 from hyper_param import *
 
+from utils import compute_start_end_index as cmp
 
 LOAD_PICKLES = True
 
@@ -32,8 +33,11 @@ def main():
         training_df, validation_df = data_preprocessing(training_df, validation_df)     # data cleaner
         save_datasets(training_df, validation_df)
 
+    cmp.compute_start_end_index(training_df, validation_df)
+    quit()
+
     tokenizer_x, x_train_question, x_train_context, y_train_answer_start, y_train_text, \
-    x_val_question, x_val_context, y_val_answer_start, y_val_text = data_conversion(training_df, validation_df, True)
+    x_val_question, x_val_context, y_val_answer_start, y_val_text = data_conversion(training_df, validation_df, LOAD_PICKLES)
 
     # Model
     context_max_lenght = x_train_context.shape[1]
