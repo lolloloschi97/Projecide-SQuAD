@@ -5,7 +5,7 @@ from nltk.corpus import stopwords
 
 # Config
 
-REPLACE_BY_SPACE_RE = re.compile('[/(){}\[\]\|@,;\']')
+REPLACE_BY_SPACE_RE = re.compile('[/(){}\[\]\|@;\']')
 GOOD_SYMBOLS_RE = re.compile('[^0-9a-z #+_]')
 try:
     STOPWORDS = set(stopwords.words('english'))
@@ -29,6 +29,7 @@ def replace_special_characters(text: str) -> str:
     Replaces special characters, such as paranthesis,
     with spacing character
     """
+    text = re.sub(r"([0-9]+),([0-9]+)", r"\1\2", text)
     text = re.sub(r"([0-9]+(\.[0-9]+)?)", r" \1 ", text).strip()
     return REPLACE_BY_SPACE_RE.sub(' ', text)
 

@@ -29,8 +29,8 @@ def build_context_to_query(context_layer, query_layer, n_heads=2, head_dim=4):
 def build_query_to_context(context_layer, query_layer, context_lenght, n_heads=2, head_dim=4):
     attention_layer_q2c = tf.keras.layers.MultiHeadAttention(num_heads=n_heads, key_dim=head_dim)
     attention_tensor = attention_layer_q2c(query_layer, context_layer)  # output shape (query_lenght, Emb_dim)
-    max_column = tf.nn.softmax(tf.math.reduce_max(attention_tensor, axis=-2))  # compute the most important words in the context wrt the query
-    q2c_tensor = tf.repeat(tf.expand_dims(max_column, -2), context_lenght, axis=-2)    # duplicate the column for every context word
+    max_column = tf.nn.softmax(tf.math.reduce_max(attention_tensor, axis=-2))  # compute the most important words in the context wrt the query -> shape (1, Emb_dim)
+    q2c_tensor = tf.repeat(tf.expand_dims(max_column, -2), context_lenght, axis=-2)    # duplicate the column for every context word -> shape (context_lenght, Emb_dim)
     return q2c_tensor
 
 
@@ -88,7 +88,7 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
     # custom_metric = tf.keras.metrics.BinaryCrossentropy() TODO
 
     model.compile(optimizer=custom_optimizer, loss=tf.keras.losses.BinaryCrossentropy(),
-                  metrics=[tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy(), tf.keras.metrics.FalseNegatives()])
+                  metrics=[tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.FalseNegatives()])
     model.summary()
 
     return model
