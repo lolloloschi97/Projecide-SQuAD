@@ -10,14 +10,15 @@ from hyper_param import *
 def extract_numpy_structures(train_set, val_set):
     x_train_question = train_set['question'].values
     x_train_context = train_set['context'].values
-    y_train_answer_start = train_set['answer_start'].values
-    y_train_text = train_set['text'].values
+    y_train_answer_start = train_set['start_index'].values
+    y_train_answer_end = train_set['end_index'].values
     x_val_question = val_set['question'].values
     x_val_context = val_set['context'].values
-    y_val_answer_start = val_set['answer_start'].values
-    y_val_text = val_set['text'].values
+    y_val_answer_start = val_set['start_index'].values
+    y_val_answer_end = val_set['end_index'].values
 
-    return x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text
+    return x_train_question, x_train_context, y_train_answer_start, y_train_answer_end, \
+                            x_val_question, x_val_context, y_val_answer_start, y_val_answer_end
 
 
 def load_embedding_model(model_type: str,
@@ -205,45 +206,32 @@ def convert_text(texts, tokenizer, is_training=False, max_seq_length=None):
 
 
 def data_conversion(train_set, val_set, load=False):
-    x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text = extract_numpy_structures(
-        train_set, val_set)
+    x_train_question, x_train_context, y_train_answer_start, y_train_answer_end, x_val_question,\
+                    x_val_context, y_val_answer_start, y_val_answer_end = extract_numpy_structures(train_set, val_set)
     if not load:
         tokenizer_x = build_tokenizer(x_train_context)
         with open(UTILS_ROOT + 'tokenizer_x.pickle', 'wb') as handle:
             pickle.dump(tokenizer_x, handle, protocol=pickle.HIGHEST_PROTOCOL)
             print('Tokenizer X saved')
             print()
-        tokenizer_y = build_tokenizer(y_train_text)
-        with open(UTILS_ROOT + 'tokenizer_y.pickle', 'wb') as handle:
-            pickle.dump(tokenizer_y, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            print('Tokenizer y saved')
-            print()
     else:
         with open(UTILS_ROOT + 'tokenizer_x.pickle', 'rb') as handle:
             tokenizer_x = pickle.load(handle)
             print('Tokenizer X loaded')
-        with open(UTILS_ROOT + 'tokenizer_y.pickle', 'rb') as handle:
-            tokenizer_y = pickle.load(handle)
-            print('Tokenizer y loaded')
 
     print("Data conversion...")
     # Train
     x_train_context, max_seq_length_x_context = convert_text(x_train_context, tokenizer_x, True)
     x_train_question, max_seq_length_x_question = convert_text(x_train_question, tokenizer_x, True)
-    y_train_text, max_seq_length_y = convert_text(y_train_text, tokenizer_y, True)
     print("Max token sequence context: {}".format(max_seq_length_x_context))
     print("Max token sequence question: {}".format(max_seq_length_x_question))
-    print("Max token sequence y: {}".format(max_seq_length_y))
     print('X context train shape: ', x_train_context.shape)
     print('X question train shape: ', x_train_question.shape)
-    print('Y train text shape: ', y_train_text.shape)
 
     # Val
     x_val_context = convert_text(x_val_context, tokenizer_x, False, max_seq_length_x_context)
-    x_val_question = convert_text(x_val_question, tokenizer_x, False, max_seq_length_x_context)
-    y_val_text = convert_text(y_val_text, tokenizer_y, False, max_seq_length_y)
+    x_val_question = convert_text(x_val_question, tokenizer_x, False, max_seq_length_x_question)
     print('X context val shape: ', x_val_context.shape)
     print('X question val shape: ', x_val_question.shape)
-    print('Y val text shape: ', y_val_text.shape)
 
-    return tokenizer_x, x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text
+    return tokenizer_x, x_train_question, x_train_context, y_train_answer_start, y_train_answer_end, x_val_question, x_val_context, y_val_answer_start, y_val_answer_end

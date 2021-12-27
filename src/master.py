@@ -3,9 +3,19 @@ from data_preprocessing import data_preprocessing
 from data_conversion import data_conversion
 from model_definition import model_definition
 from training import training
+from compute_start_end_index import compute_start_end_index
 from hyper_param import *
 
-from utils import compute_start_end_index as cmp
+from keras.utils.np_utils import to_categorical
+
+
+##################################### TODO
+#
+#                  - fit the tokenizer with both context and question (and text maybe)
+#
+#
+###################################
+
 
 LOAD_PICKLES = True
 
@@ -31,21 +41,34 @@ def main():
     else:
         training_df, validation_df = data_loader(TRAIN_SIZE)        # data loader
         training_df, validation_df = data_preprocessing(training_df, validation_df)     # data cleaner
+        training_df, validation_df = compute_start_end_index(training_df, validation_df)     # create the right start and end indexes after cleaning
         save_datasets(training_df, validation_df)
 
-    cmp.compute_start_end_index(training_df, validation_df)
-    quit()
+    tokenizer_x, x_train_question, x_train_context, y_train_answer_start, y_train_answer_end, x_val_question,\
+              x_val_context, y_val_answer_start, y_val_answer_end = data_conversion(training_df, validation_df, LOAD_PICKLES)
 
-    tokenizer_x, x_train_question, x_train_context, y_train_answer_start, y_train_text, \
-    x_val_question, x_val_context, y_val_answer_start, y_val_text = data_conversion(training_df, validation_df, LOAD_PICKLES)
+    # one-hot-encoding of y
+    y_train_start_enc = to_categorical(y_train_answer_start)
+    y_train_end_enc = to_categorical(y_train_answer_end)
+    y_val_start_enc = to_categorical(y_val_answer_start)
+    y_val_end_enc = to_categorical(y_val_answer_end)
+    max_lenght = x_train_context.shape[1]
+    y_train_start_enc = np.pad(y_train_start_enc, ((0, 0), (0, max_lenght - y_train_start_enc.shape[1])))
+    y_train_end_enc = np.pad(y_train_end_enc, ((0, 0), (0, max_lenght - y_train_end_enc.shape[1])))
+    y_val_start_enc = np.pad(y_val_start_enc, ((0, 0), (0, max_lenght - y_val_start_enc.shape[1])))
+    y_val_end_enc = np.pad(y_val_end_enc, ((0, 0), (0, max_lenght - y_val_end_enc.shape[1])))
+
+    print(y_train_start_enc.shape)
+    print(y_train_end_enc.shape)
+    print(y_val_start_enc.shape)
+    print(y_val_end_enc.shape)
 
     # Model
     context_max_lenght = x_train_context.shape[1]
     query_max_lenght = x_train_question.shape[1]
     model = model_definition(context_max_lenght, query_max_lenght, tokenizer_x)
 
-    quit()  # FIXME
-    training(model, x_train_question, x_train_context, y_train_answer_start, y_train_text, x_val_question, x_val_context, y_val_answer_start, y_val_text)
+    training(model, x_train_question, x_train_context, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
 
 
 if __name__ == '__main__':
