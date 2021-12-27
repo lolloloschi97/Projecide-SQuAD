@@ -3,6 +3,7 @@ from data_preprocessing import data_preprocessing
 from data_conversion import data_conversion
 from model_definition import model_definition
 from training import training
+from training import load_predict
 from compute_start_end_index import compute_start_end_index
 from hyper_param import *
 
@@ -68,7 +69,8 @@ def main():
     query_max_lenght = x_train_question.shape[1]
     model = model_definition(context_max_lenght, query_max_lenght, tokenizer_x)
 
-    training(model, x_train_question, x_train_context, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
+    # training(model, x_train_question, x_train_context, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
+    load_predict(x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
 
 
 if __name__ == '__main__':
