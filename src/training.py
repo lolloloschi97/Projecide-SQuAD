@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 
 
 BATCH_SIZE = 64
-EPOCHS = 2
+EPOCHS = 50
 
 
 def training(model, x_train_question, x_train_context, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, y_val_start_enc, y_val_end_enc):
