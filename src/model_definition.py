@@ -86,9 +86,10 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
     custom_optimizer = tf.keras.optimizers.Adadelta(learning_rate=0.5, rho=0.999, epsilon=1e-07, name="Adadelta")
     # custom_loss = custom_loss_fn() TODO
     # custom_metric = tf.keras.metrics.BinaryCrossentropy() TODO
-
+    CLASS_WEIGHTS = {'tf.nn.softmax_1': {0: 0.0015, 1: 0.9985}, 'tf.nn.softmax_2': {0: 0.0015, 1: 0.9985}}
     model.compile(optimizer=custom_optimizer, loss=tf.keras.losses.BinaryCrossentropy(),
-                  metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")])
+                  metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")],
+                  loss_weights=CLASS_WEIGHTS)
     model.summary()
 
     return model
