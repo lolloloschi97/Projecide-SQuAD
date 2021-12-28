@@ -41,7 +41,8 @@ def build_overall_attention_tensor(context_tensor, context_to_query_tensor, quer
 
 
 def custom_loss_fn(y_true, y_pred):
-    return 0
+    bn_crossentropy = tf.nn.weighted_cross_entropy_with_logits(y_true, y_pred, tf.constant(501.0))  # FIXME make me adaptive
+    return tf.reduce_mean(bn_crossentropy, axis=-1)
 
 
 def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
@@ -83,13 +84,10 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
     model = Model(inputs=[context_input, query_input], outputs=[prob_start_index, prob_end_index])
 
     #  Compile the model with custom compiling settings
-    custom_optimizer = tf.keras.optimizers.Adadelta(learning_rate=0.5, rho=0.999, epsilon=1e-07, name="Adadelta")
-    # custom_loss = custom_loss_fn() TODO
+    # custom_optimizer = tf.keras.optimizers.Adadelta(learning_rate=0.5, rho=0.999, epsilon=1e-07, name="Adadelta")
     # custom_metric = tf.keras.metrics.BinaryCrossentropy() TODO
-    CLASS_WEIGHTS = {'tf.nn.softmax_1': {0: 0.0015, 1: 0.9985}, 'tf.nn.softmax_2': {0: 0.0015, 1: 0.9985}}
-    model.compile(optimizer=custom_optimizer, loss=tf.keras.losses.BinaryCrossentropy(),
-                  metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")],
-                  loss_weights=CLASS_WEIGHTS)
+    model.compile(optimizer=tf.keras.optimizers.Nadam(), loss=custom_loss_fn,
+                  metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")])
     model.summary()
 
     return model
