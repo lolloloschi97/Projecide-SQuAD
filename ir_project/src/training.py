@@ -3,7 +3,7 @@ from hyper_param import *
 from matplotlib import pyplot as plt
 
 
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 EPOCHS = 20
 
 
@@ -18,21 +18,21 @@ def load_predict(x_val_question, x_val_context, y_val):
     with open(UTILS_ROOT + 'trainHistoryDict', 'rb') as file:
         history_dict = pickle.load(file)
         plotter(history_dict)
-    model = tf.keras.models.load_model(UTILS_ROOT + "saved_model")
-    model.evaluate([x_val_context, x_val_question], [y_val])
-    y_start, y_end = model.predict([x_val_context[:5], x_val_question[:5]])
-    print(y_start.shape)
-    print(y_end.shape)
-    print(np.argmax(y_start, axis=-1))
-    print(np.argmax(y_end, axis=-1))
+    #model = tf.keras.models.load_model(UTILS_ROOT + "saved_model")
+    #model.evaluate([x_val_context, x_val_question], [y_val])
+    #y_start, y_end = model.predict([x_val_context[:5], x_val_question[:5]])
+    #print(y_start.shape)
+    #print(y_end.shape)
+    #print(np.argmax(y_start, axis=-1))
+    #print(np.argmax(y_end, axis=-1))
 
 
 def plotter(history_dict):
-    plt.title('model binary crossentropy')
-    plt.ylabel('crossentropy')
+    plt.title('model False Negatives')
+    plt.ylabel('false negatives')
     plt.xlabel('epoch')
-    plt.plot(history_dict['bn_cross'], 'r')
-    plt.plot(history_dict['val_bn_cross'], 'r--')
+    plt.plot(history_dict['fls_neg'], 'r')
+    plt.plot(history_dict['val_fls_neg'], 'b--')
     plt.legend(['train', 'val'], loc='upper left')
     plt.show()
 
@@ -40,7 +40,7 @@ def plotter(history_dict):
     plt.ylabel('precision')
     plt.xlabel('epoch')
     plt.plot(history_dict['precision'], 'r')
-    plt.plot(history_dict['val_precision'], 'r--')
+    plt.plot(history_dict['val_precision'], 'b--')
     plt.legend(['train', 'val'], loc='upper left')
     plt.show()
 
@@ -48,7 +48,7 @@ def plotter(history_dict):
     plt.ylabel('recall')
     plt.xlabel('epoch')
     plt.plot(history_dict['recall'], 'r')
-    plt.plot(history_dict['val_recall'], 'r--')
+    plt.plot(history_dict['val_recall'], 'b--')
     plt.legend(['train', 'val'], loc='upper left')
     plt.show()
 
@@ -56,6 +56,6 @@ def plotter(history_dict):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.plot(history_dict['loss'], 'r')
-    plt.plot(history_dict['val_loss'], 'r--')
+    plt.plot(history_dict['val_loss'], 'b--')
     plt.legend(['train', 'val'], loc='upper left')
     plt.show()

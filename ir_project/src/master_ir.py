@@ -15,7 +15,7 @@ from hyper_param import *
 ###################################
 
 
-LOAD_PICKLES = False   # TRUE for Training, FALSE for TESTING
+LOAD_PICKLES = True   # FALSE for Training, TRUE for TESTING
 
 
 def save_datasets(train_df, val_df):

@@ -67,7 +67,7 @@ PREPROCESSING_PIPELINE = [
                           lower,
                           replace_special_characters,
                           filter_out_uncommon_symbols,
-                          # remove_stopwords,                 #TODO
+                          remove_stopwords,                 #TODO
                           strip_text,
                           remove_redundant_spaces
                           ]

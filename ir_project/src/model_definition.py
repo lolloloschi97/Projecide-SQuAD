@@ -1,7 +1,7 @@
 from hyper_param import *
 import keras
 import tensorflow as tf
-from keras.layers import Dense, Input, LSTM, Bidirectional, Dropout, GRU
+from keras.layers import Dense, Input, LSTM, Bidirectional, Dropout, GRU, Dot, Concatenate
 from keras.models import Model
 
 
@@ -9,6 +9,8 @@ from keras.models import Model
 Hyper parameter for the model
 """
 DROP_RATE = 0.2
+L1 = 0.00005
+L2 = 0.0001
 
 
 def word_embbedding_layer(max_seq_length, tokenizer):
@@ -34,15 +36,8 @@ def build_query_to_context(context_layer, query_layer, context_lenght, n_heads=1
     return q2c_tensor
 
 
-def build_overall_attention_tensor(context_tensor, context_to_query_tensor, query_to_context_tensor):
-    context_c2q = tf.math.multiply(context_tensor, context_to_query_tensor)
-    context_q2c = tf.math.multiply(context_tensor, query_to_context_tensor)
-    return tf.concat(values=[context_tensor, context_to_query_tensor, context_c2q, context_q2c], axis=-1)
-
-
-def custom_loss_fn(y_true, y_pred):
-    bn_crossentropy = tf.nn.weighted_cross_entropy_with_logits(y_true, y_pred, tf.constant(501.0))  # FIXME make me adaptive
-    return tf.reduce_mean(bn_crossentropy, axis=-1)
+def build_overall_attention_tensor(context_to_query_tensor, query_to_context_tensor):
+    return tf.concat(values=[context_to_query_tensor, query_to_context_tensor], axis=-1)
 
 
 def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
@@ -56,33 +51,33 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
     query_embedding = word_embbedding_layer(query_max_lenght, tokenizer_x)(query_input)
 
     # Contextual Embedding Layer
-    #context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(context_embedding))
-    #query_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_embedding))
+    context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(GRU(EMBEDDING_DIM, return_sequences=False))(context_embedding))
+    query_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(GRU(EMBEDDING_DIM, return_sequences=False))(query_embedding))
 
     # Attention Flow Layer
 
-    context_to_query_tensor = build_context_to_query(context_embedding, query_embedding)
-    query_to_context_tensor = build_query_to_context(context_embedding, query_embedding, context_max_lenght)
-    overall_attention_tensor = build_overall_attention_tensor(context_embedding, context_to_query_tensor, query_to_context_tensor)
+    cosine_similarity_layer = Dot(axes=1)([context_contestual_embedding, query_contestual_embedding])
+    merging_layer = Dropout(DROP_RATE)(Concatenate()([context_contestual_embedding, query_contestual_embedding, cosine_similarity_layer]))
+
 
     # Modeling Layer
 
-    query_context_contextual_tensor = Dropout(DROP_RATE)(Bidirectional(GRU(EMBEDDING_DIM, return_sequences=True))(overall_attention_tensor))
+
+    classifier_layer = Dropout(DROP_RATE)(Dense(64, activation='relu', kernel_regularizer=tf.keras.regularizers.l1_l2(l1=L1, l2=L2))(merging_layer))
+    classifier_layer = Dropout(DROP_RATE)(Dense(8, activation='relu', kernel_regularizer=tf.keras.regularizers.l1_l2(l1=L1, l2=L2))(classifier_layer))
 
     # Output Layer
 
     # The Dense layer behaviour, in the following configuration, is the same of a vector by matrix product. (trainable)
-    dense_layer_1 = Dense(1, use_bias=True, activation='linear')(tf.concat([overall_attention_tensor, query_context_contextual_tensor], axis=-1))
-    dense_layer_1 = Dropout(DROP_RATE)(dense_layer_1)
-    dense_layer_2 = Dropout(DROP_RATE)(Dense(64, activation='tanh')(tf.squeeze(dense_layer_1, -1)))
-    classifier = Dense(1, activation='sigmoid')(dense_layer_2)
+
+    output_classifier = Dense(1, activation='sigmoid')(classifier_layer)
 
     #  Create the model
-    model = Model(inputs=[context_input, query_input], outputs=[classifier])
+    model = Model(inputs=[context_input, query_input], outputs=[output_classifier])
 
     #  Compile the model with custom compiling settings
     model.compile(optimizer=tf.keras.optimizers.Nadam(), loss=tf.keras.losses.BinaryCrossentropy(),
-                  metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")])
+                  metrics=[tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision"), tf.keras.metrics.FalseNegatives(name="fls_neg")])
     model.summary()
 
     return model

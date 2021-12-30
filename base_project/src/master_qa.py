@@ -18,7 +18,7 @@ from keras.utils.np_utils import to_categorical
 ###################################
 
 
-LOAD_PICKLES = False   # TRUE for Training, FALSE for TESTING
+LOAD_PICKLES = False   # FALSE for Training, TRUE for TESTING
 
 
 def save_datasets(train_df, val_df):

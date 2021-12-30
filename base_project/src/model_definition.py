@@ -45,6 +45,14 @@ def custom_loss_fn(y_true, y_pred):
     return tf.reduce_mean(bn_crossentropy, axis=-1)
 
 
+def attention_layer(context_layer, query_layer, n_heads=4, head_dim=4):
+    # Context to query
+    attention_layer_c2q = tf.keras.layers.MultiHeadAttention(num_heads=n_heads, key_dim=head_dim)
+    c2q_tensor, attention_scores = attention_layer_c2q(context_layer, query_layer, return_attention_scores=True)  # output shape (context_lenght, Emb_dim), attention shape (context_lenght, query_lenght)
+
+    return tf.concat(values=[context_layer, c2q_tensor], axis=-1)
+
+
 def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
 
     # initialize two distinct models
@@ -61,20 +69,18 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
 
     # Attention Flow Layer
 
-    context_to_query_tensor = build_context_to_query(context_contestual_embedding, query_contestual_embedding)
-    query_to_context_tensor = build_query_to_context(query_contestual_embedding, context_contestual_embedding, context_max_lenght)
-    overall_attention_tensor = build_overall_attention_tensor(context_contestual_embedding, context_to_query_tensor, query_to_context_tensor)
+    attention_tensor = attention_layer(context_contestual_embedding, query_contestual_embedding)
 
     # Modeling Layer
 
-    query_context_contextual_tensor_1 = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(overall_attention_tensor))
-    query_context_contextual_tensor_2 = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_context_contextual_tensor_1))
+    query_context_contextual_tensor_1 = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(attention_tensor))
+    query_context_contextual_tensor_2 = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(attention_tensor))
 
     # Output Layer
 
     # The Dense layer behaviour, in the following configuration, is the same of a vector by matrix product. (trainable)
-    dense_start_layer = Dense(1, use_bias=False, activation='linear')(tf.concat([overall_attention_tensor, query_context_contextual_tensor_1], axis=-1))
-    dense_end_layer = Dense(1, use_bias=False, activation='linear')(tf.concat([overall_attention_tensor, query_context_contextual_tensor_2], axis=-1))
+    dense_start_layer = Dense(1, use_bias=True, activation='linear')(tf.concat([attention_tensor, query_context_contextual_tensor_1], axis=-1))
+    dense_end_layer = Dense(1, use_bias=True, activation='linear')(tf.concat([attention_tensor, query_context_contextual_tensor_2], axis=-1))
     dense_start_layer = Dropout(DROP_RATE)(dense_start_layer)
     dense_end_layer = Dropout(DROP_RATE)(dense_end_layer)
     prob_start_index = tf.nn.softmax(tf.squeeze(dense_start_layer, -1))
