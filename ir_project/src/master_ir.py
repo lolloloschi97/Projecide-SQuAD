@@ -6,6 +6,7 @@ from training import training
 from training import load_predict
 from document_tagging import document_tagging
 from query_document_counter import query_document_counter
+from Doc2vec import doc2vec
 from hyper_param import *
 
 
@@ -43,12 +44,14 @@ def main():
         training_df, validation_df = load_datasets()
     else:
         training_df, validation_df = data_loader(TRAIN_SIZE)        # data loader
-        training_df = training_df[:10000]
-        validation_df = validation_df[:10000]
+        training_df = training_df[:1000]
+        validation_df = validation_df[:1000]
         training_df, validation_df = data_preprocessing(training_df, validation_df)     # data cleaner
-        training_df, validation_df = document_tagging(training_df, validation_df)  # pos tagging
+        #training_df, validation_df = document_tagging(training_df, validation_df)  # pos tagging
         #save_datasets(training_df, validation_df)
 
+    doc2vec(training_df, validation_df)
+    quit()
     query_document_counter(training_df)
     quit()
     tokenizer_x, x_train_question, x_train_context, y_train, x_val_question, x_val_context, y_val = data_conversion(training_df, validation_df, LOAD_PICKLES)
