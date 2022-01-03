@@ -19,7 +19,7 @@ from keras.utils.np_utils import to_categorical
 ###################################
 
 
-LOAD_PICKLES = False     # FALSE first time
+LOAD_PICKLES = True     # FALSE first time
 TRAINING = True
 
 
@@ -83,17 +83,14 @@ def main():
     print(y_train_end_enc.shape)
     print(y_val_start_enc.shape)
     print(y_val_end_enc.shape)
-    quit()
 
     # Model
     context_max_lenght = x_train_context.shape[1]
     query_max_lenght = x_train_question.shape[1]
     model = model_definition(context_max_lenght, query_max_lenght, tokenizer_x)
-    training(model, x_train_question, x_train_context, y_train_start_enc, y_train_end_enc, x_val_question,
-             x_val_context, y_val_start_enc, y_val_end_enc)
-    quit()
+
     if TRAINING:
-        training(model, x_train_question, x_train_context, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
+        training(model, x_train_question, x_train_context, x_train_pos_enc, x_train_match, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, x_val_pos_enc, x_val_match, y_val_start_enc, y_val_end_enc)
     else:
         load_predict(x_val_question, x_val_context, y_val_start_enc, y_val_end_enc)
 

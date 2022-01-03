@@ -2,8 +2,10 @@ import copy
 
 from hyper_param import *
 import nltk
-# nltk.download('maxent_ne_chunker')
-# nltk.download('words')
+#nltk.download('maxent_ne_chunker')
+#nltk.download('words')
+#nltk.download('punkt')
+#nltk.download('averaged_perceptron_tagger')
 
 
 def add_exact_match(dataframe):
