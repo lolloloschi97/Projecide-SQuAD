@@ -32,7 +32,7 @@ def json_to_dataframe(input_file):
 def split_dataset(dataframe, train_size):
     training_max_context_id = int(train_size * max(dataframe["context_id"]))
     train_set = dataframe.loc[dataframe["context_id"] < training_max_context_id]
-    val_set = dataframe.loc[dataframe["context_id"] >= training_max_context_id]
+    val_set = dataframe.loc[dataframe["context_id"] >= training_max_context_id].reset_index()
     print("Datasets split")
     return train_set, val_set
 

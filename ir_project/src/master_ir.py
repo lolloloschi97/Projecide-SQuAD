@@ -47,12 +47,12 @@ def main():
         training_df = training_df[:1000]
         validation_df = validation_df[:1000]
         training_df, validation_df = data_preprocessing(training_df, validation_df)     # data cleaner
-        #training_df, validation_df = document_tagging(training_df, validation_df)  # pos tagging
-        #save_datasets(training_df, validation_df)
+        training_df, validation_df = document_tagging(training_df, validation_df)  # pos tagging
+        save_datasets(training_df, validation_df)
 
-    doc2vec(training_df, validation_df)
+    #doc2vec(training_df, validation_df)
     quit()
-    query_document_counter(training_df)
+    #query_document_counter(training_df)
     quit()
     tokenizer_x, x_train_question, x_train_context, y_train, x_val_question, x_val_context, y_val = data_conversion(training_df, validation_df, LOAD_PICKLES)
 

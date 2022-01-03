@@ -6,7 +6,7 @@ from nltk.corpus import stopwords
 # Config
 
 REPLACE_BY_SPACE_RE = re.compile('[/(){}\[\]\|@;\']')
-GOOD_SYMBOLS_RE = re.compile('[^0-9a-z #+_]')
+GOOD_SYMBOLS_RE = re.compile('[^0-9a-zèé #+_]')
 try:
     STOPWORDS = set(stopwords.words('english'))
 except LookupError:

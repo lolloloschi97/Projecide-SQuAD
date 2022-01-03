@@ -8,9 +8,9 @@ DATASET_ROOT = "../datasets/"
 INPUT_FILE_NAME = "raw_dataset"
 TRAIN_SIZE = 0.8
 
-RAW_POS_LIST = {'ADJ': 4, 'ADP': 0, 'ADV': 4, 'AUX': 0, 'CONJ': 0, 'CCONJ': 0, 'DET': 0, 'INTJ': 0, 'NOUN': 2, 'NUM': 1, 'PART': 0, 'PRON': 0, 'PROPN': 1, 'PUNCT': 0, 'SCONJ': 0, 'SYM': 0, 'VERB': 3, 'X': 0}
+RAW_POS_LIST = {'CC': 0, 'CD': 5, 'DT': 0, 'EX': 0, 'FW': 6, 'IN': 0, 'JJ': 4, 'JJR': 4, 'JJS': 4, 'LS': 0, 'MD': 0, 'NN': 2, 'NNS': 2, 'NNP': 1, 'NNPS': 1, 'PDT': 0, 'POS': 0, 'PRP': 0, 'PRP$':0, 'RB': 4, 'RBR': 4, 'RBS': 4, 'RP': 0, 'TO': 0, 'UH': 0, 'VB': 3, 'VBD': 3, 'VBG': 3, 'VBN': 3, 'VBP': 3, 'VBZ': 3, 'WDT': 0, 'WP': 0, 'WP$': 0, 'WRB': 0}
 
-POS_LIST = {'ADJ': 4, 'ADV': 4, 'NOUN': 2, 'NUM': 1, 'PROPN': 1, 'VERB': 3}
+POS_LIST = {'CD': 5, 'FW': 6, 'JJ': 4, 'JJR': 4, 'JJS': 4, 'NN': 2, 'NNS': 2, 'NNP': 1, 'NNPS': 1, 'RB': 4, 'RBR': 4, 'RBS': 4, 'VB': 3, 'VBD': 3, 'VBG': 3, 'VBN': 3, 'VBP': 3, 'VBZ': 3}
 
 
 
