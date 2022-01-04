@@ -87,7 +87,7 @@ def main():
     # Model
     context_max_lenght = x_train_context.shape[1]
     query_max_lenght = x_train_question.shape[1]
-    model = model_definition(context_max_lenght, query_max_lenght, tokenizer_x)
+    model = model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_lenght)
 
     if TRAINING:
         training(model, x_train_question, x_train_context, x_train_pos_enc, x_train_match, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, x_val_pos_enc, x_val_match, y_val_start_enc, y_val_end_enc)

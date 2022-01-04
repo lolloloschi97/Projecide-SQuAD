@@ -60,29 +60,29 @@ def attention_layer(context_layer, query_layer, n_heads=4, head_dim=4):
     return tf.concat(values=[context_layer, c2q_tensor], axis=-1)
 
 
-
-def weighted_cross_entropy_with_logits_modified(labels, logits, pos_weight, neg_weights, name = None):
+def weighted_cross_entropy_with_logits_modified(labels, logits, pos_weight, neg_weights, name=None):
     log_weight = neg_weights + (pos_weight - neg_weights) * labels
     return math_ops.add(
         (1 - labels) * logits * neg_weights,
         log_weight * (math_ops.log1p(math_ops.exp(-math_ops.abs(logits))) +
                       nn_ops.relu(-logits)),  # pylint: disable=invalid-unary-operand-type
         name=name)
+
+
 def custom_loss_fn(y_true, y_pred):
     pos_weight = tf.constant(1.0)
     neg_weight = tf.constant(0.0)
-    bn_crossentropy = weighted_cross_entropy_with_logits_modified(y_true, y_pred, pos_weight,neg_weight)  # FIXME make me adaptive
+    bn_crossentropy = weighted_cross_entropy_with_logits_modified(y_true, y_pred, pos_weight, neg_weight)  # FIXME make me adaptive
     return tf.reduce_mean(bn_crossentropy, axis=-1)
 
 
-def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
+def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_lenght):
 
     # initialize two distinct models
     context_input = Input(shape=(context_max_lenght,))
-    context_pos = Input(shape=(context_max_lenght,38))
-    context_exact_match = (Input(shape=(context_max_lenght,)))
+    context_pos = Input(shape=(context_max_lenght, pos_max_lenght))
+    context_exact_match = Input(shape=(context_max_lenght,))
     query_input = Input(shape=(query_max_lenght,))
-
 
     # adding the Embedding (words) layer to both the models
     context_embedding = word_embbedding_layer(context_max_lenght, tokenizer_x)(context_input)
@@ -95,7 +95,6 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
     context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(context_feature_vector))
     context_contestual_embedding_compressed = Dense(2*EMBEDDING_DIM, use_bias=True, activation='relu')(context_contestual_embedding)
     query_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_embedding))
-
 
 
     # Attention Flow Layer
@@ -114,18 +113,19 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
     # The Dense layer behaviour, in the following configuration, is the same of a vector by matrix product. (trainable)
     dense_start_layer = Dense(1, use_bias=False, activation='linear')(tf.concat([overall_attention_tensor, query_context_contextual_tensor_1], axis=-1))
     dense_end_layer = Dense(1, use_bias=False, activation='linear')(tf.concat([overall_attention_tensor, query_context_contextual_tensor_2], axis=-1))
+
     dense_start_layer = Dropout(DROP_RATE)(dense_start_layer)
     dense_end_layer = Dropout(DROP_RATE)(dense_end_layer)
     prob_start_index = tf.nn.softmax(tf.squeeze(dense_start_layer, -1))
     prob_end_index = tf.nn.softmax(tf.squeeze(dense_end_layer, -1))
 
     #  Create the model
-    model = Model(inputs=[context_input,context_pos, context_exact_match, query_input], outputs=[prob_start_index, prob_end_index])
+    model = Model(inputs=[context_input, context_pos, context_exact_match, query_input], outputs=[prob_start_index, prob_end_index])
 
     #  Compile the model with custom compiling settings
     # custom_optimizer = tf.keras.optimizers.Adadelta(learning_rate=0.5, rho=0.999, epsilon=1e-07, name="Adadelta")
     # custom_metric = tf.keras.metrics.BinaryCrossentropy() TODO
-    model.compile( optimizer=tf.keras.optimizers.Nadam(), loss=custom_loss_fn,
+    model.compile(optimizer=tf.keras.optimizers.Nadam(), loss=custom_loss_fn,
                   metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")])
     model.summary()
 
