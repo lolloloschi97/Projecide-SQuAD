@@ -10,7 +10,7 @@ from keras.models import Model
 """
 Hyper parameter for the model
 """
-DROP_RATE = 0.2
+DROP_RATE = 0.28
 
 
 def word_embbedding_layer(max_seq_length, tokenizer):
@@ -92,8 +92,8 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_
     context_feature_vector = build_context_feature_vector(context_embedding, context_pos, context_exact_match)
 
     # Contextual Embedding Layer
-    context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(context_feature_vector))
-    # context_contestual_embedding_compressed = Dense(2*EMBEDDING_DIM, use_bias=True, activation='relu')(context_contestual_embedding)      Penso sia inutile?
+    context_contestual_embedding_compressed = Dropout(DROP_RATE)(Dense(EMBEDDING_DIM, use_bias=True, activation='relu')(context_feature_vector))
+    context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(context_contestual_embedding_compressed))
     query_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_embedding))
 
 
@@ -101,7 +101,7 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_
     #context_to_query_tensor = build_context_to_query(context_contestual_embedding_compressed, query_contestual_embedding)
     #query_to_context_tensor = build_query_to_context(query_contestual_embedding, context_contestual_embedding_compressed, context_max_lenght)
     #overall_attention_tensor = build_overall_attention_tensor(context_contestual_embedding_compressed, context_to_query_tensor, query_to_context_tensor)
-    overall_attention_tensor = attention_layer(context_contestual_embedding, query_contestual_embedding)
+    overall_attention_tensor = attention_layer(context_contestual_embedding, query_contestual_embedding, n_heads=8, head_dim=8)
 
     # Modeling Layer
 

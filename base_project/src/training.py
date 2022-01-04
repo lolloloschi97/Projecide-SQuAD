@@ -5,7 +5,7 @@ from model_definition import custom_loss_fn
 
 
 BATCH_SIZE = 64
-EPOCHS = 20
+EPOCHS = 30
 
 
 class DataGenerator(tf.keras.utils.Sequence):
