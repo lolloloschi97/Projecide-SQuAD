@@ -93,7 +93,7 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_
 
     # Contextual Embedding Layer
     context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(context_feature_vector))
-    context_contestual_embedding_compressed = Dense(2*EMBEDDING_DIM, use_bias=True, activation='relu')(context_contestual_embedding)
+    # context_contestual_embedding_compressed = Dense(2*EMBEDDING_DIM, use_bias=True, activation='relu')(context_contestual_embedding)      Penso sia inutile?
     query_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(LSTM(EMBEDDING_DIM, return_sequences=True))(query_embedding))
 
 
@@ -101,7 +101,7 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_
     #context_to_query_tensor = build_context_to_query(context_contestual_embedding_compressed, query_contestual_embedding)
     #query_to_context_tensor = build_query_to_context(query_contestual_embedding, context_contestual_embedding_compressed, context_max_lenght)
     #overall_attention_tensor = build_overall_attention_tensor(context_contestual_embedding_compressed, context_to_query_tensor, query_to_context_tensor)
-    overall_attention_tensor = attention_layer(context_contestual_embedding_compressed, query_contestual_embedding)
+    overall_attention_tensor = attention_layer(context_contestual_embedding, query_contestual_embedding)
 
     # Modeling Layer
 
