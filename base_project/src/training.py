@@ -5,7 +5,7 @@ from model_definition import custom_loss_fn
 
 
 BATCH_SIZE = 64
-EPOCHS = 30
+EPOCHS = 20
 
 
 class DataGenerator(tf.keras.utils.Sequence):
@@ -25,10 +25,24 @@ class DataGenerator(tf.keras.utils.Sequence):
         return batch_x, batch_y
 
 
-def training(model, x_train_question, x_train_context, x_train_context_pos, x_train_context_exact_match, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, x_val_context_pos, x_val_context_exact_match, y_val_start_enc, y_val_end_enc):
+def training(model, resume, x_train_question, x_train_context, x_train_context_pos, x_train_context_exact_match, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, x_val_context_pos, x_val_context_exact_match, y_val_start_enc, y_val_end_enc):
     training_generator = DataGenerator((x_train_context, x_train_context_pos, x_train_context_exact_match, x_train_question), (y_train_start_enc, y_train_end_enc), BATCH_SIZE)
     validation_generator = DataGenerator((x_val_context, x_val_context_pos, x_val_context_exact_match, x_val_question), (y_val_start_enc, y_val_end_enc), BATCH_SIZE)
-    history = model.fit(x=training_generator, epochs=EPOCHS, validation_data=validation_generator)
+    checkpoint_filepath = UTILS_ROOT + '/tmp/checkpoint'
+    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+                        filepath=checkpoint_filepath,
+                        save_weights_only=True,
+                        monitor='val_tf.nn.softmax_1_loss',
+                        mode='max',
+                        save_best_only=True
+                        )
+    if resume:
+        model.load_weights(checkpoint_filepath)
+    history = model.fit(x=training_generator,
+                        epochs=EPOCHS,
+                        validation_data=validation_generator,
+                        callbacks=[model_checkpoint_callback]
+                        )
     model.save(UTILS_ROOT + "saved_model")
     with open(UTILS_ROOT + 'trainHistoryDict', 'wb') as file:
         pickle.dump(history.history, file, pickle.HIGHEST_PROTOCOL)
@@ -41,11 +55,15 @@ def load_predict(x_val_context, x_val_context_pos, x_val_context_exact_match, x_
     custom_objects = {'custom_loss_fn': custom_loss_fn}
     model = tf.keras.models.load_model(UTILS_ROOT + "saved_model", custom_objects=custom_objects)
     # print(model.evaluate([x_val_context, x_val_context_pos, x_val_context_exact_match, x_val_question], [y_val_start_enc, y_val_end_enc]))
-    y_start, y_end = model.predict((x_val_context[:50], x_val_context_pos[:50], x_val_context_exact_match[:50], x_val_question[:50]))
-    print(y_start.shape)
-    print(y_end.shape)
+    y_start, y_end = model.predict((x_val_context[:10], x_val_context_pos[:10], x_val_context_exact_match[:10], x_val_question[:10]))
     print(np.argmax(y_start, axis=-1))
     print(np.argmax(y_end, axis=-1))
+    for i in range(10):
+        indexes_start = (y_start[y_start[i, :].argsort((y_start[i, :] * 1000).astype(int))])[-3:]
+        print(indexes_start)
+    for i in range(10):
+        indexes_end = (y_end[y_end[i, :].argsort((y_end[i, :] * 1000).astype(int))])[-3:]
+        print(indexes_end)
 
 
 def plotter(history_dict):
