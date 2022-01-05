@@ -65,7 +65,7 @@ def data_loader(train_size=0.9):
     """
 
     pd_dataframe = json_to_dataframe(INPUT_FILE_NAME)
-    #pd_dataframe = create_negative_samples(pd_dataframe)
+    pd_dataframe = create_negative_samples(pd_dataframe)
     print("shape of the dataframe is {}".format(pd_dataframe.shape))
     train_set, val_set = split_dataset(pd_dataframe, train_size)
     return train_set, val_set

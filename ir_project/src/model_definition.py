@@ -8,7 +8,7 @@ from keras.models import Model
 """
 Hyper parameter for the model
 """
-DROP_RATE = 0.2
+DROP_RATE = 0.25
 L1 = 0.00005
 L2 = 0.0001
 
@@ -21,6 +21,11 @@ def word_embbedding_layer(max_seq_length, tokenizer):
                                              trainable=False,
                                              mask_zero=True)
     return embedding_layer
+
+
+def build_context_feature_vector(context_layer, context_pos, context_exact_match):
+    context_feature_vector = Concatenate()([context_layer, context_pos, tf.expand_dims(context_exact_match, axis=-1)])
+    return context_feature_vector
 
 
 def build_context_to_query(context_layer, query_layer, n_heads=16, head_dim=8):
@@ -40,18 +45,22 @@ def build_overall_attention_tensor(context_to_query_tensor, query_to_context_ten
     return tf.concat(values=[context_to_query_tensor, query_to_context_tensor], axis=-1)
 
 
-def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
+def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_lenght):
 
-    # initialize two distinct models
     context_input = Input(shape=(context_max_lenght,))
+    context_pos = Input(shape=(context_max_lenght, pos_max_lenght))
+    context_exact_match = Input(shape=(context_max_lenght,))
     query_input = Input(shape=(query_max_lenght,))
 
     # adding the Embedding (words) layer to both the models
     context_embedding = word_embbedding_layer(context_max_lenght, tokenizer_x)(context_input)
     query_embedding = word_embbedding_layer(query_max_lenght, tokenizer_x)(query_input)
 
+    context_feature_vector = build_context_feature_vector(context_embedding, context_pos, context_exact_match)
+
+
     # Contextual Embedding Layer
-    context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(GRU(EMBEDDING_DIM, return_sequences=False))(context_embedding))
+    context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(GRU(EMBEDDING_DIM, return_sequences=False))(context_feature_vector))
     query_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(GRU(EMBEDDING_DIM, return_sequences=False))(query_embedding))
 
     # Attention Flow Layer
@@ -61,7 +70,6 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
 
 
     # Modeling Layer
-
 
     classifier_layer = Dropout(DROP_RATE)(Dense(64, activation='relu', kernel_regularizer=tf.keras.regularizers.l1_l2(l1=L1, l2=L2))(merging_layer))
     classifier_layer = Dropout(DROP_RATE)(Dense(8, activation='relu', kernel_regularizer=tf.keras.regularizers.l1_l2(l1=L1, l2=L2))(classifier_layer))

@@ -1,24 +1,31 @@
 import gensim
 import gensim.downloader as gloader
+import numpy as np
 import tensorflow as tf
 from typing import List, Callable, Dict
 import tqdm
 from hyper_param import *
+import collections
 
 
 def extract_numpy_structures(train_set, val_set):
     x_train_question = train_set['question'].values
     x_train_context = train_set['context'].values
+    x_train_match = train_set['exact_match'].values
+    x_train_pos = train_set['pos'].values
     y_train = train_set['label'].values
     x_val_question = val_set['question'].values
     x_val_context = val_set['context'].values
+    x_val_match = val_set['exact_match'].values
+    x_val_pos = val_set['pos'].values
     y_val = val_set['label'].values
 
-    return x_train_question, x_train_context, y_train, x_val_question, x_val_context, y_val
+    return x_train_question, x_train_context, x_train_match, x_train_pos, y_train, \
+           x_val_question, x_val_context, x_val_match, x_val_pos, y_val
 
 
 def load_embedding_model(model_type: str,
-                         embedding_dimension: int = 100) -> gensim.models.keyedvectors.KeyedVectors:
+                         embedding_dimension: int = 200) -> gensim.models.keyedvectors.KeyedVectors:
     """
     Loads a pre-trained word embedding model via gensim library.
 
@@ -181,6 +188,16 @@ def build_tokenizer(x_train_context):
     return tokenizer_X
 
 
+def build_pos_tokenizer(x_train_pos):
+    tokenizer_args = None
+    tokenizer = KerasTokenizer(tokenizer_args=tokenizer_args,
+                                 build_embedding_matrix=False)
+    tokenizer.build_vocab(x_train_pos)
+    tokenizer_info = tokenizer.get_info()
+    print('Tokenizer POS info: ', tokenizer_info)
+    return tokenizer
+
+
 def convert_text(texts, tokenizer, is_training=False, max_seq_length=None):
     text_ids = tokenizer.convert_tokens_to_ids(texts)
     # Padding
@@ -198,32 +215,55 @@ def convert_text(texts, tokenizer, is_training=False, max_seq_length=None):
         return text_ids
 
 
+def exact_match_to_numpy(exact_match, context_len):
+    exact_match_np = np.zeros((exact_match.shape[0], context_len))
+    for i, row in enumerate(exact_match):
+        exact_match_np[i, :] = np.pad(np.array(row[:context_len]), (0, max(0, context_len - len(row))))
+    return exact_match_np
+
+
 def data_conversion(train_set, val_set, load=False):
-    x_train_question, x_train_context, y_train, x_val_question, x_val_context, y_val = extract_numpy_structures(train_set, val_set)
+    x_train_question, x_train_context, x_train_match, x_train_pos, y_train,\
+    x_val_question, x_val_context, x_val_match, x_val_pos, y_val = extract_numpy_structures(train_set, val_set)
+
     if not load:
         tokenizer_x = build_tokenizer(x_train_context)
+        tokenizer_pos = build_pos_tokenizer(x_train_pos)
         with open(UTILS_ROOT + 'tokenizer_x.pickle', 'wb') as handle:
             pickle.dump(tokenizer_x, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            print('Tokenizer X saved')
-            print()
+        with open(UTILS_ROOT + 'tokenizer_pos.pickle', 'wb') as handle:
+            pickle.dump(tokenizer_pos, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print('Tokenizers saved')
+        print()
     else:
         with open(UTILS_ROOT + 'tokenizer_x.pickle', 'rb') as handle:
             tokenizer_x = pickle.load(handle)
-            print('Tokenizer X loaded')
+        with open(UTILS_ROOT + 'tokenizer_pos.pickle', 'rb') as handle:
+            tokenizer_pos = pickle.load(handle)
+        print('Tokenizers loaded')
 
     print("Data conversion...")
     # Train
     x_train_context, max_seq_length_x_context = convert_text(x_train_context, tokenizer_x, True)
     x_train_question, max_seq_length_x_question = convert_text(x_train_question, tokenizer_x, True)
+    x_train_pos, max_seq_length_x_pos = convert_text(x_train_pos, tokenizer_pos, True)
+    x_train_match = exact_match_to_numpy(x_train_match, max_seq_length_x_context)
     print("Max token sequence context: {}".format(max_seq_length_x_context))
+    print("Max token sequence pos: {}".format(max_seq_length_x_pos))
     print("Max token sequence question: {}".format(max_seq_length_x_question))
+    print('X POS train shape: ', x_train_pos.shape)
     print('X context train shape: ', x_train_context.shape)
     print('X question train shape: ', x_train_question.shape)
+    print('X match train shape: ', x_train_match.shape)
 
     # Val
     x_val_context = convert_text(x_val_context, tokenizer_x, False, max_seq_length_x_context)
     x_val_question = convert_text(x_val_question, tokenizer_x, False, max_seq_length_x_question)
+    x_val_pos = convert_text(x_val_pos, tokenizer_pos, False, max_seq_length_x_pos)
+    x_val_match = exact_match_to_numpy(x_val_match, max_seq_length_x_context)
     print('X context val shape: ', x_val_context.shape)
+    print('X POS val shape: ', x_val_pos.shape)
     print('X question val shape: ', x_val_question.shape)
+    print('X match val shape: ', x_val_match.shape)
 
-    return tokenizer_x, x_train_question, x_train_context, y_train, x_val_question, x_val_context, y_val
+    return tokenizer_x, x_train_question, x_train_context, x_train_match, x_train_pos, y_train, x_val_question, x_val_context, x_val_match, x_val_pos, y_val
