@@ -72,7 +72,7 @@ def weighted_cross_entropy_with_logits_modified(labels, logits, pos_weight, neg_
 def custom_loss_fn(y_true, y_pred):
     pos_weight = tf.constant(1.0)
     neg_weight = tf.constant(0.0)
-    bn_crossentropy = weighted_cross_entropy_with_logits_modified(y_true, y_pred, pos_weight, neg_weight)  # FIXME make me adaptive
+    bn_crossentropy = weighted_cross_entropy_with_logits_modified(y_true, y_pred, pos_weight, neg_weight)
     return tf.reduce_mean(bn_crossentropy, axis=-1)
 
 
@@ -123,8 +123,7 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_
     model = Model(inputs=[context_input, context_pos, context_exact_match, query_input], outputs=[prob_start_index, prob_end_index])
 
     #  Compile the model with custom compiling settings
-    # custom_optimizer = tf.keras.optimizers.Adadelta(learning_rate=0.5, rho=0.999, epsilon=1e-07, name="Adadelta")
-    # custom_metric = tf.keras.metrics.BinaryCrossentropy() TODO
+    # TODO remove binary cross
     model.compile(optimizer=tf.keras.optimizers.Nadam(), loss=custom_loss_fn,
                   metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")])
     model.summary()

@@ -11,7 +11,7 @@ def compute_start_end_index(training_df, validation_df):
     for i, row in training_df.iterrows():
         answer = row.text
         context = row.context
-        start = len(context[:context.find(answer)].split(' '))  # count the words before the match
+        start = len(context[:context.find(answer)].split(' ')) - 1 # count the words before the match
         end = start - 1 + len(answer.split(' '))
         training_df.loc[i, 'start_index'] = start
         training_df.loc[i, 'end_index'] = end
@@ -27,7 +27,7 @@ def compute_start_end_index(training_df, validation_df):
     for i, row in validation_df.iterrows():
         answer = row.text
         context = row.context
-        start = len(context[:context.find(answer)].split(' '))
+        start = len(context[:context.find(answer)].split(' ')) - 1
         end = start - 1 + len(answer.split(' '))
         validation_df.loc[i, 'start_index'] = start
         validation_df.loc[i, 'end_index'] = end

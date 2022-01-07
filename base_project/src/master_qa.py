@@ -3,9 +3,10 @@ from data_preprocessing import data_preprocessing
 from data_conversion import data_conversion
 from model_definition import model_definition
 from training import training
-from training import load_predict
+from training import plot_history
 from compute_start_end_index import compute_start_end_index
 from add_data_informations import add_data_informations
+from prediction import make_predictions
 from hyper_param import *
 
 from keras.utils.np_utils import to_categorical
@@ -19,8 +20,8 @@ from keras.utils.np_utils import to_categorical
 ###################################
 
 
-LOAD_PICKLES = False     # FALSE first time
-TRAINING = True
+LOAD_PICKLES = True     # FALSE first time
+TRAINING = False
 RESUME_TRAINING = False
 
 
@@ -46,7 +47,7 @@ def main():
     if LOAD_PICKLES:
         training_df, validation_df = load_datasets()
     else:
-        training_df, validation_df = data_loader()        # data loader
+        training_df, validation_df, test_df = data_loader()        # data loader
         training_df, validation_df = data_preprocessing(training_df, validation_df)     # data cleaner
         training_df, validation_df = compute_start_end_index(training_df, validation_df)     # create the right start and end indexes after cleaning
         training_df, validation_df = add_data_informations(training_df, validation_df)     # add exact_match & POS
@@ -93,7 +94,8 @@ def main():
     if TRAINING:
         training(model, RESUME_TRAINING, x_train_question, x_train_context, x_train_pos_enc, x_train_match, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, x_val_pos_enc, x_val_match, y_val_start_enc, y_val_end_enc)
     else:
-        load_predict(x_val_context, x_val_pos_enc, x_val_match, x_val_question, y_val_start_enc, y_val_end_enc)
+        # plot_history()
+        make_predictions(validation_df, x_val_context, x_val_pos_enc, x_val_match, x_val_question, y_val_start_enc, y_val_end_enc)
 
 
 if __name__ == '__main__':

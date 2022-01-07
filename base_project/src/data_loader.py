@@ -29,21 +29,24 @@ def json_to_dataframe(input_file):
     return dataframe
 
 
-def split_dataset(dataframe, train_size):
-    training_max_context_id = int(train_size * max(dataframe["context_id"]))
+def split_dataset(dataframe):
+    training_max_context_id = int(TRAIN_SIZE * max(dataframe["context_id"]))
+    val_max_context_id = int((1-TEST_SIZE) * max(dataframe["context_id"]))
+
     train_set = dataframe.loc[dataframe["context_id"] < training_max_context_id]
-    val_set = dataframe.loc[dataframe["context_id"] >= training_max_context_id].reset_index()
+    val_set = dataframe.loc[val_max_context_id >= dataframe["context_id"] >= training_max_context_id].reset_index()
+    test_set = dataframe.loc[dataframe["context_id"] > val_max_context_id].reset_index()
     print("Datasets split")
-    return train_set, val_set
+    return train_set, val_set, test_set
 
 
 # MAIN FUNCTION
-def data_loader(train_size=0.9):
+def data_loader():
     """
     :return: Pandas dataframes of training set and validation set
     """
 
     pd_dataframe = json_to_dataframe(INPUT_FILE_NAME)
-    train_set, val_set = split_dataset(pd_dataframe, train_size)
-    return train_set, val_set
+    train_set, val_set, test_set = split_dataset(pd_dataframe)
+    return train_set, val_set, test_set
 

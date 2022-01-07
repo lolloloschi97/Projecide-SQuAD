@@ -8,3 +8,5 @@ tensorflow-gpu~=2.7.0
 matplotlib~=3.4.3
 keras~=2.7.0
 scikit-learn~=1.0.2
+scipy~=1.7.0
+spacy~=3.2.1
