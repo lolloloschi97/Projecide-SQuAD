@@ -46,7 +46,7 @@ def main():
     if LOAD_PICKLES:
         training_df, validation_df = load_datasets()
     else:
-        training_df, validation_df = data_loader(TRAIN_SIZE)        # data loader
+        training_df, validation_df = data_loader()        # data loader
         training_df, validation_df = data_preprocessing(training_df, validation_df)     # data cleaner
         training_df, validation_df = compute_start_end_index(training_df, validation_df)     # create the right start and end indexes after cleaning
         training_df, validation_df = add_data_informations(training_df, validation_df)     # add exact_match & POS

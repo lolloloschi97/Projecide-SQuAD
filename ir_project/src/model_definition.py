@@ -23,8 +23,8 @@ def word_embbedding_layer(max_seq_length, tokenizer):
     return embedding_layer
 
 
-def build_context_feature_vector(context_layer, context_pos, context_exact_match):
-    context_feature_vector = Concatenate()([context_layer, context_pos, tf.expand_dims(context_exact_match, axis=-1)])
+def build_context_feature_vector(context_layer, context_exact_match):
+    context_feature_vector = tf.concat([context_layer, tf.expand_dims(context_exact_match, axis=2)], axis=2)
     return context_feature_vector
 
 
@@ -45,10 +45,9 @@ def build_overall_attention_tensor(context_to_query_tensor, query_to_context_ten
     return tf.concat(values=[context_to_query_tensor, query_to_context_tensor], axis=-1)
 
 
-def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_lenght):
+def model_definition(context_max_lenght, query_max_lenght, tokenizer_x):
 
     context_input = Input(shape=(context_max_lenght,))
-    context_pos = Input(shape=(context_max_lenght, pos_max_lenght))
     context_exact_match = Input(shape=(context_max_lenght,))
     query_input = Input(shape=(query_max_lenght,))
 
@@ -56,18 +55,17 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_
     context_embedding = word_embbedding_layer(context_max_lenght, tokenizer_x)(context_input)
     query_embedding = word_embbedding_layer(query_max_lenght, tokenizer_x)(query_input)
 
-    context_feature_vector = build_context_feature_vector(context_embedding, context_pos, context_exact_match)
-
+    context_feature_vector = build_context_feature_vector(context_embedding, context_exact_match)
 
     # Contextual Embedding Layer
+
     context_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(GRU(EMBEDDING_DIM, return_sequences=False))(context_feature_vector))
     query_contestual_embedding = Dropout(DROP_RATE)(Bidirectional(GRU(EMBEDDING_DIM, return_sequences=False))(query_embedding))
 
     # Attention Flow Layer
 
-    cosine_similarity_layer = Dot(axes=1)([context_contestual_embedding, query_contestual_embedding])
+    cosine_similarity_layer = Dot(axes=1, normalize=True)([context_contestual_embedding, query_contestual_embedding])
     merging_layer = Dropout(DROP_RATE)(Concatenate()([context_contestual_embedding, query_contestual_embedding, cosine_similarity_layer]))
-
 
     # Modeling Layer
 

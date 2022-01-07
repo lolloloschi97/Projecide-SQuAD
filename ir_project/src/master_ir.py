@@ -7,6 +7,7 @@ from training import load_predict
 from compute_start_end_index import compute_start_end_index
 from add_data_informations import add_data_informations
 from keras.utils.np_utils import to_categorical
+from tf_idf_ir import tf_idf_ir
 
 from hyper_param import *
 
@@ -47,36 +48,24 @@ def main():
     else:
         training_df, validation_df = data_loader(TRAIN_SIZE)        # data loader
         training_df, validation_df = data_preprocessing(training_df, validation_df)     # data cleaner
-        training_df, validation_df = add_data_informations(training_df, validation_df)     # add exact_match & POS
         save_datasets(training_df, validation_df)
 
-    tokenizer_x, x_train_question, x_train_context, x_train_match, x_train_pos, y_train, x_val_question, \
-    x_val_context, x_val_match, x_val_pos, y_val = data_conversion(training_df, validation_df, LOAD_PICKLES)
-
-    # one-hot-encoding
-    print("One hot encoding..")
-    x_train_pos_enc = to_categorical(x_train_pos)
-    x_val_pos_enc = to_categorical(x_val_pos)
-
-    # padding
-    print("Padding...")
-    pos_max_lenght = max(x_train_pos_enc.shape[2], x_val_pos_enc.shape[2])
-    x_train_pos_enc = np.pad(x_train_pos_enc, ((0, 0), (0, 0), (0, pos_max_lenght - x_train_pos_enc.shape[2])))
-    x_val_pos_enc = np.pad(x_val_pos_enc, ((0, 0), (0, 0), (0, pos_max_lenght - x_val_pos_enc.shape[2])))
-
-    print(x_train_pos_enc.shape)
-    print(x_val_pos_enc.shape)
+    tf_idf_ir(training_df, validation_df)
 
     quit()
+    tokenizer_x, x_train_question, x_train_context, x_train_match, y_train, x_val_question, \
+    x_val_context, x_val_match, y_val = data_conversion(training_df, validation_df, LOAD_PICKLES)
+
+    
     # Model
     context_max_lenght = x_train_context.shape[1]
     query_max_lenght = x_train_question.shape[1]
-    model = model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_lenght)
+    model = model_definition(context_max_lenght, query_max_lenght, tokenizer_x)
 
     if TRAINING:
-        training(model, x_train_question, x_train_context, x_train_pos_enc, x_train_match, y_train, x_val_question, x_val_context, x_val_pos_enc, x_val_match, y_val)
+        training(model, x_train_question, x_train_context, x_train_match, y_train, x_val_question, x_val_context, x_val_match, y_val)
     else:
-        load_predict(x_val_context, x_val_pos_enc, x_val_match, x_val_question, y_val)
+        load_predict(x_val_context, x_val_match, x_val_question, y_val)
 
 
 if __name__ == '__main__':

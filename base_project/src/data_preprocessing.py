@@ -6,7 +6,7 @@ from nltk.corpus import stopwords
 # Config
 
 REPLACE_BY_SPACE_RE = re.compile('[/(){}\[\]\|@;\']')
-GOOD_SYMBOLS_RE = re.compile('[^0-9a-zèé #+_]')
+GOOD_SYMBOLS_RE = re.compile('[^0-9a-zA-Zèé #+_]')
 try:
     STOPWORDS = set(stopwords.words('english'))
 except LookupError:
@@ -64,7 +64,7 @@ def remove_redundant_spaces(text: str) -> str:
 
 
 PREPROCESSING_PIPELINE = [
-                          lower,
+                          # lower,                          # TODO
                           replace_special_characters,
                           filter_out_uncommon_symbols,
                           # remove_stopwords,                 #TODO

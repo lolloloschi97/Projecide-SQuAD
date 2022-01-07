@@ -7,6 +7,7 @@ UTILS_ROOT = "../utils/"
 DATASET_ROOT = "../datasets/"
 INPUT_FILE_NAME = "raw_dataset"
 TRAIN_SIZE = 0.6
+VAL_TEST_SIZE = 0.5
 
 
 

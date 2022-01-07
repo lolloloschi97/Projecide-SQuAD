@@ -1,10 +1,15 @@
 import numpy as np
 import pandas as pd
 import pickle
+import tqdm
+import math
+
 
 
 EMBEDDING_DIM = 200
 UTILS_ROOT = "../utils/"
 DATASET_ROOT = "../datasets/"
 INPUT_FILE_NAME = "raw_dataset"
-TRAIN_SIZE = 0.7
+TRAIN_SIZE = 0.95
+
+SEED = 0

@@ -12,16 +12,14 @@ def extract_numpy_structures(train_set, val_set):
     x_train_question = train_set['question'].values
     x_train_context = train_set['context'].values
     x_train_match = train_set['exact_match'].values
-    x_train_pos = train_set['pos'].values
     y_train = train_set['label'].values
     x_val_question = val_set['question'].values
     x_val_context = val_set['context'].values
     x_val_match = val_set['exact_match'].values
-    x_val_pos = val_set['pos'].values
     y_val = val_set['label'].values
 
-    return x_train_question, x_train_context, x_train_match, x_train_pos, y_train, \
-           x_val_question, x_val_context, x_val_match, x_val_pos, y_val
+    return x_train_question, x_train_context, x_train_match, y_train, \
+           x_val_question, x_val_context, x_val_match, y_val
 
 
 def load_embedding_model(model_type: str,
@@ -223,35 +221,27 @@ def exact_match_to_numpy(exact_match, context_len):
 
 
 def data_conversion(train_set, val_set, load=False):
-    x_train_question, x_train_context, x_train_match, x_train_pos, y_train,\
-    x_val_question, x_val_context, x_val_match, x_val_pos, y_val = extract_numpy_structures(train_set, val_set)
+    x_train_question, x_train_context, x_train_match, y_train,\
+    x_val_question, x_val_context, x_val_match, y_val = extract_numpy_structures(train_set, val_set)
 
     if not load:
         tokenizer_x = build_tokenizer(x_train_context)
-        tokenizer_pos = build_pos_tokenizer(x_train_pos)
         with open(UTILS_ROOT + 'tokenizer_x.pickle', 'wb') as handle:
             pickle.dump(tokenizer_x, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        with open(UTILS_ROOT + 'tokenizer_pos.pickle', 'wb') as handle:
-            pickle.dump(tokenizer_pos, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print('Tokenizers saved')
         print()
     else:
         with open(UTILS_ROOT + 'tokenizer_x.pickle', 'rb') as handle:
             tokenizer_x = pickle.load(handle)
-        with open(UTILS_ROOT + 'tokenizer_pos.pickle', 'rb') as handle:
-            tokenizer_pos = pickle.load(handle)
         print('Tokenizers loaded')
 
     print("Data conversion...")
     # Train
     x_train_context, max_seq_length_x_context = convert_text(x_train_context, tokenizer_x, True)
     x_train_question, max_seq_length_x_question = convert_text(x_train_question, tokenizer_x, True)
-    x_train_pos, max_seq_length_x_pos = convert_text(x_train_pos, tokenizer_pos, True)
     x_train_match = exact_match_to_numpy(x_train_match, max_seq_length_x_context)
     print("Max token sequence context: {}".format(max_seq_length_x_context))
-    print("Max token sequence pos: {}".format(max_seq_length_x_pos))
     print("Max token sequence question: {}".format(max_seq_length_x_question))
-    print('X POS train shape: ', x_train_pos.shape)
     print('X context train shape: ', x_train_context.shape)
     print('X question train shape: ', x_train_question.shape)
     print('X match train shape: ', x_train_match.shape)
@@ -259,11 +249,9 @@ def data_conversion(train_set, val_set, load=False):
     # Val
     x_val_context = convert_text(x_val_context, tokenizer_x, False, max_seq_length_x_context)
     x_val_question = convert_text(x_val_question, tokenizer_x, False, max_seq_length_x_question)
-    x_val_pos = convert_text(x_val_pos, tokenizer_pos, False, max_seq_length_x_pos)
     x_val_match = exact_match_to_numpy(x_val_match, max_seq_length_x_context)
     print('X context val shape: ', x_val_context.shape)
-    print('X POS val shape: ', x_val_pos.shape)
     print('X question val shape: ', x_val_question.shape)
     print('X match val shape: ', x_val_match.shape)
 
-    return tokenizer_x, x_train_question, x_train_context, x_train_match, x_train_pos, y_train, x_val_question, x_val_context, x_val_match, x_val_pos, y_val
+    return tokenizer_x, x_train_question, x_train_context, x_train_match, y_train, x_val_question, x_val_context, x_val_match, y_val
