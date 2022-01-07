@@ -14,16 +14,6 @@ except LookupError:
     STOPWORDS = set(stopwords.words('english'))
 
 
-def lower(text: str) -> str:
-    """
-    Transforms given text to lower case.
-    Example:
-    Input: 'I really like New York city'
-    Output: 'i really like new your city'
-    """
-    return text.lower()
-
-
 def replace_special_characters(text: str) -> str:
     """
     Replaces special characters, such as paranthesis,
@@ -40,10 +30,6 @@ def filter_out_uncommon_symbols(text: str) -> str:
     good symbols list (check regular expression)
     """
     return GOOD_SYMBOLS_RE.sub('', text)
-
-
-def remove_stopwords(text: str) -> str:
-    return ' '.join([x for x in text.split() if x and x not in STOPWORDS])
 
 
 def strip_text(text: str) -> str:
@@ -64,10 +50,8 @@ def remove_redundant_spaces(text: str) -> str:
 
 
 PREPROCESSING_PIPELINE = [
-                          # lower,                          # TODO
                           replace_special_characters,
                           filter_out_uncommon_symbols,
-                          # remove_stopwords,                 #TODO
                           strip_text,
                           remove_redundant_spaces
                           ]
@@ -84,20 +68,19 @@ def text_prepare(text: str, filter_methods=None):
 
 
 # MAIN FUNCTION
-def data_preprocessing(train_set, val_set):
+def data_preprocessing(train_set, val_set, test_set):
     print('Pre-processing text...')
     print()
     print('[Debug] Before:\n{}'.format(train_set.context[:3]))
-    print('[Debug] Before:\n{}'.format(val_set.context[:3]))
     print()
 
     for label in ['question', 'context', 'text']:
         train_set[label] = train_set[label].apply(lambda txt: text_prepare(txt))
         val_set[label] = val_set[label].apply(lambda txt: text_prepare(txt))
+        test_set[label] = test_set[label].apply(lambda txt: text_prepare(txt))
 
     print('[Debug] After:\n{}'.format(train_set.context[:3]))
-    print('[Debug] After:\n{}'.format(val_set.context[:3]))
     print()
     print("Pre-processing completed!")
 
-    return train_set, val_set
+    return train_set, val_set, test_set

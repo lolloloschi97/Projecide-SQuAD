@@ -48,11 +48,15 @@ def add_POS_tagging(dataframe):
     return orig
 
 
-def add_data_informations(training_df, validation_df):
+def add_data_informations(training_df, validation_df, test_df):
     training_df = add_exact_match(training_df)
     training_df = add_POS_tagging(training_df)
     print()
     print("Repeat tagging for validation")
     validation_df = add_exact_match(validation_df)
     validation_df = add_POS_tagging(validation_df)
-    return training_df, validation_df
+    print()
+    print("Repeat tagging for test")
+    test_df = add_exact_match(test_df)
+    test_df = add_POS_tagging(test_df)
+    return training_df, validation_df, test_df

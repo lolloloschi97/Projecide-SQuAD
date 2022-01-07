@@ -8,22 +8,32 @@ from hyper_param import *
 import collections
 
 
-def extract_numpy_structures(train_set, val_set):
+def extract_numpy_structures(train_set, val_set, test_set):
+    # train
     x_train_question = train_set['question'].values
     x_train_context = train_set['context'].values
     x_train_match = train_set['exact_match'].values
     x_train_pos = train_set['pos'].values
     y_train_answer_start = train_set['start_index'].values
     y_train_answer_end = train_set['end_index'].values
+    # val
     x_val_question = val_set['question'].values
     x_val_context = val_set['context'].values
     x_val_match = val_set['exact_match'].values
     x_val_pos = val_set['pos'].values
     y_val_answer_start = val_set['start_index'].values
     y_val_answer_end = val_set['end_index'].values
+    # test
+    x_test_question = test_set['question'].values
+    x_test_context = test_set['context'].values
+    x_test_match = test_set['exact_match'].values
+    x_test_pos = test_set['pos'].values
+    y_test_answer_start = test_set['start_index'].values
+    y_test_answer_end = test_set['end_index'].values
 
     return x_train_question, x_train_context, x_train_match, x_train_pos, y_train_answer_start, y_train_answer_end, \
-           x_val_question, x_val_context, x_val_match, x_val_pos, y_val_answer_start, y_val_answer_end
+           x_val_question, x_val_context, x_val_match, x_val_pos, y_val_answer_start, y_val_answer_end, \
+           x_test_question, x_test_context, x_test_match, x_test_pos, y_test_answer_start, y_test_answer_end
 
 
 def load_embedding_model(model_type: str,
@@ -193,7 +203,7 @@ def build_tokenizer(x_train_context):
 def build_pos_tokenizer(x_train_pos):
     tokenizer_args = None
     tokenizer = KerasTokenizer(tokenizer_args=tokenizer_args,
-                                 build_embedding_matrix=False)
+                               build_embedding_matrix=False)
     tokenizer.build_vocab(x_train_pos)
     tokenizer_info = tokenizer.get_info()
     print('Tokenizer POS info: ', tokenizer_info)
@@ -224,9 +234,11 @@ def exact_match_to_numpy(exact_match, context_len):
     return exact_match_np
 
 
-def data_conversion(train_set, val_set, load=False):
-    x_train_question, x_train_context, x_train_match, x_train_pos, y_train_answer_start, y_train_answer_end,\
-    x_val_question, x_val_context, x_val_match, x_val_pos, y_val_answer_start, y_val_answer_end = extract_numpy_structures(train_set, val_set)
+def data_conversion(train_set, val_set, test_set, load):
+    x_train_question, x_train_context, x_train_match, x_train_pos, y_train_answer_start, y_train_answer_end, \
+    x_val_question, x_val_context, x_val_match, x_val_pos, y_val_answer_start, y_val_answer_end, \
+    x_test_question, x_test_context, x_test_match, x_test_pos, y_test_answer_start, y_test_answer_end = extract_numpy_structures(
+        train_set, val_set, test_set)
 
     if not load:
         tokenizer_x = build_tokenizer(x_train_context)
@@ -268,4 +280,16 @@ def data_conversion(train_set, val_set, load=False):
     print('X question val shape: ', x_val_question.shape)
     print('X match val shape: ', x_val_match.shape)
 
-    return tokenizer_x, x_train_question, x_train_context, x_train_match, x_train_pos, y_train_answer_start, y_train_answer_end, x_val_question, x_val_context, x_val_match, x_val_pos, y_val_answer_start, y_val_answer_end
+    # Test
+    x_test_context = convert_text(x_test_context, tokenizer_x, False, max_seq_length_x_context)
+    x_test_question = convert_text(x_test_question, tokenizer_x, False, max_seq_length_x_question)
+    x_test_pos = convert_text(x_test_pos, tokenizer_pos, False, max_seq_length_x_pos)
+    x_test_match = exact_match_to_numpy(x_test_match, max_seq_length_x_context)
+    print('X context test shape: ', x_test_context.shape)
+    print('X POS test shape: ', x_test_pos.shape)
+    print('X question test shape: ', x_test_question.shape)
+    print('X match test shape: ', x_test_match.shape)
+
+    return tokenizer_x, x_train_question, x_train_context, x_train_match, x_train_pos, y_train_answer_start, y_train_answer_end,\
+           x_val_question, x_val_context, x_val_match, x_val_pos, y_val_answer_start, y_val_answer_end, x_test_question,\
+           x_test_context, x_test_match, x_test_pos, y_test_answer_start, y_test_answer_end

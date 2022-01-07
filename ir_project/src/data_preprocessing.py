@@ -84,20 +84,20 @@ def text_prepare(text: str, filter_methods=None):
 
 
 # MAIN FUNCTION
-def data_preprocessing(train_set, val_set):
+def data_preprocessing(train_set, test_set):
     print('Pre-processing text...')
     print()
     print('[Debug] Before:\n{}'.format(train_set.context[:3]))
-    print('[Debug] Before:\n{}'.format(val_set.context[:3]))
+    print('[Debug] Before:\n{}'.format(test_set.context[:3]))
     print()
 
     for label in ['question', 'context']:
         train_set[label] = train_set[label].apply(lambda txt: text_prepare(txt))
-        val_set[label] = val_set[label].apply(lambda txt: text_prepare(txt))
+        test_set[label] = test_set[label].apply(lambda txt: text_prepare(txt))
 
     print('[Debug] After:\n{}'.format(train_set.context[:3]))
-    print('[Debug] After:\n{}'.format(val_set.context[:3]))
+    print('[Debug] After:\n{}'.format(test_set.context[:3]))
     print()
     print("Pre-processing completed!")
 
-    return train_set, val_set
+    return train_set, test_set

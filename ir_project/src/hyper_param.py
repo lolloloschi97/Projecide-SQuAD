@@ -5,11 +5,7 @@ import tqdm
 import math
 
 
-
-EMBEDDING_DIM = 200
 UTILS_ROOT = "../utils/"
 DATASET_ROOT = "../datasets/"
 INPUT_FILE_NAME = "raw_dataset"
-TRAIN_SIZE = 0.95
-
-SEED = 0
+TRAIN_SIZE = 0.9

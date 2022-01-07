@@ -41,32 +41,14 @@ def split_dataset(dataframe, train_size):
     return train_set, val_set
 
 
-def create_negative_samples(dataframe):
-    orig_df = copy.deepcopy(dataframe)
-    dataframe = dataframe[dataframe.context_id != max(dataframe.context_id)]    # remove last element to align indexes
-    print("Create complete dataset...")
-    context = list(pd.unique(orig_df.context.values))[:-1]
-    next_context = list(pd.unique(orig_df.context.values))[1:]    # shifted context
-    dict_id_context = dict(zip(context, next_context))
-
-    dataframe = pd.DataFrame(np.repeat(dataframe.values, 2, axis=0), columns=dataframe.columns)
-    dataframe['label'] = 1
-    dataframe.loc[lambda x: x.index % 2 == 1, 'label'] = 0
-    dataframe.loc[lambda x: x.index % 2 == 1, 'context'] = dataframe.loc[lambda x: x.index % 2 == 1, 'context'].apply(lambda x: dict_id_context[x])
-    dataframe.loc[lambda x: x.index % 2 == 1, 'context_id'] += 1
-
-    return dataframe
-
-
 # MAIN FUNCTION
 def data_loader(train_size=0.9):
     """
-    :return: Pandas dataframes of training set and validation set
+    :return: Pandas dataframes of training set and test set
     """
 
     pd_dataframe = json_to_dataframe(INPUT_FILE_NAME)
-    # pd_dataframe = create_negative_samples(pd_dataframe)          # TODO
     print("shape of the dataframe is {}".format(pd_dataframe.shape))
-    train_set, val_set = split_dataset(pd_dataframe, train_size)
-    return train_set, val_set
+    train_set, test_set = split_dataset(pd_dataframe, train_size)
+    return train_set, test_set
 

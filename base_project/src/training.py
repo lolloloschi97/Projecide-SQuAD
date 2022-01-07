@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 
 
 BATCH_SIZE = 64
-EPOCHS = 20
+EPOCHS = 40
 
 
 class DataGenerator(tf.keras.utils.Sequence):
