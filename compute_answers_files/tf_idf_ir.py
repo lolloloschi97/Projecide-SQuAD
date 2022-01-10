@@ -100,4 +100,4 @@ def compare_question_answer(question, answers_list, tf_idf_vectorizer):
     distances = np.empty((n_answers, ))
     for ai in range(n_answers):
         distances[ai] = jensenshannon(question_mat[0, :], answers_mat[ai, :])
-    return np.argmax(distances)
+    return np.argmin(distances)
