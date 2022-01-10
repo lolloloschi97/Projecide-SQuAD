@@ -88,7 +88,7 @@ def compare_question_answer(question, answers_list, tf_idf_vectorizer):
     'answers_lsit': list of str. List of possible answers coming from different documents
     'tf_idf_vectorizer': TfIDFVectorizer() already loaded (it avoid to re-load each time)
 
-    return: int. The best answer index according to jensenshannon distance.
+    return: int. The best answer index according to jensenshannon distance (minimum distance).
     """
     answers_input_tf_idf = tf_idf_vectorizer.transform(answers_list)
     question_input_tf_idf = tf_idf_vectorizer.transform([question])
