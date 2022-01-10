@@ -4,7 +4,7 @@ import pickle
 import tensorflow as tf
 
 
-EMBEDDING_DIM = 300
+EMBEDDING_DIM = 200
 UTILS_ROOT = "../utils/"
 DATASET_ROOT = "../datasets/"
 INPUT_FILE_NAME = "raw_dataset"

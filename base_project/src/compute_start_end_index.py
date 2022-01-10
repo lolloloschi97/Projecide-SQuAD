@@ -2,6 +2,10 @@ from hyper_param import *
 
 
 def compute_start_end_index(training_df, validation_df, test_df):
+    """
+    For each dataframe adds two columns containing integers which indicate the initial and the final word of the answer
+    inside the context.
+    """
     print("Training set")
     training_df['start_index'] = 0
     training_df['end_index'] = 0
@@ -9,7 +13,7 @@ def compute_start_end_index(training_df, validation_df, test_df):
     for i, row in training_df.iterrows():
         answer = row.text
         context = row.context
-        start = len(context[:context.find(answer)].split(' ')) - 1 # count the words before the match
+        start = len(context[:context.find(answer)].split(' ')) - 1  # count the words before the match
         end = start - 1 + len(answer.split(' '))
         training_df.loc[i, 'start_index'] = start
         training_df.loc[i, 'end_index'] = end

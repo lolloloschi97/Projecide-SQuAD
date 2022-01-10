@@ -22,35 +22,11 @@ def word_embbedding_layer(max_seq_length, tokenizer):
                                              mask_zero=True)
     return embedding_layer
 
+
 def build_context_feature_vector(context_layer, context_pos, context_exact_match):
     context_feature_vector = Concatenate()([context_layer, context_pos, tf.expand_dims(context_exact_match, axis=-1)])
     return context_feature_vector
 
-def build_context_to_query(context_layer, query_layer, n_heads=4, head_dim=8):
-    attention_layer_c2q = tf.keras.layers.MultiHeadAttention(num_heads=n_heads, key_dim=head_dim)
-    return attention_layer_c2q(context_layer, query_layer)  # output shape (context_lenght, Emb_dim)
-
-
-def build_query_to_context(context_layer, query_layer, context_lenght, n_heads=2, head_dim=4):
-    attention_layer_q2c = tf.keras.layers.MultiHeadAttention(num_heads=n_heads, key_dim=head_dim)
-    attention_tensor = attention_layer_q2c(query_layer, context_layer)  # output shape (query_lenght, Emb_dim)
-    max_column = tf.nn.softmax(tf.math.reduce_max(attention_tensor, axis=-2))  # compute the most important words in the context wrt the query -> shape (1, Emb_dim)
-    q2c_tensor = tf.repeat(tf.expand_dims(max_column, -2), context_lenght, axis=-2)    # duplicate the column for every context word -> shape (context_lenght, Emb_dim)
-    return q2c_tensor
-
-def build_overall_attention_tensor(context_tensor, context_to_query_tensor, query_to_context_tensor):
-    context_c2q = tf.math.multiply(context_tensor, context_to_query_tensor)
-    context_q2c = tf.math.multiply(context_tensor, query_to_context_tensor)
-    return tf.concat(values=[context_tensor, context_to_query_tensor, context_c2q, context_q2c], axis=-1)
-
-def attention_layer_simil_Bidaf(context_layer, query_layer, n_heads=1, head_dim=4):
-    attention_layer_c2q = tf.keras.layers.MultiHeadAttention(num_heads=n_heads, key_dim=head_dim)
-    q2c_tensor, attention_scores = attention_layer_c2q(context_layer, query_layer, return_attention_scores = True)  # output shape (context_lenght, Emb_dim)
-    attention_tensor = tf.squeeze(tf.nn.softmax(tf.math.reduce_max(attention_scores, axis=-1)), 1)
-    c2q_tensor = tf.linalg.matmul(tf.linalg.diag(attention_tensor), context_layer)
-    context_c2q = tf.math.multiply(context_layer, c2q_tensor)
-    context_q2c = tf.math.multiply(context_layer, q2c_tensor)
-    return tf.concat(values=[context_layer, c2q_tensor, context_c2q, context_q2c], axis=-1)
 
 def attention_layer(context_layer, query_layer, n_heads=4, head_dim=4):
     # Context to query
@@ -98,9 +74,6 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_
 
 
     # Attention Flow Layer
-    #context_to_query_tensor = build_context_to_query(context_contestual_embedding_compressed, query_contestual_embedding)
-    #query_to_context_tensor = build_query_to_context(query_contestual_embedding, context_contestual_embedding_compressed, context_max_lenght)
-    #overall_attention_tensor = build_overall_attention_tensor(context_contestual_embedding_compressed, context_to_query_tensor, query_to_context_tensor)
     overall_attention_tensor = attention_layer(context_contestual_embedding, query_contestual_embedding, n_heads=8, head_dim=8)
 
     # Modeling Layer
@@ -123,9 +96,8 @@ def model_definition(context_max_lenght, query_max_lenght, tokenizer_x, pos_max_
     model = Model(inputs=[context_input, context_pos, context_exact_match, query_input], outputs=[prob_start_index, prob_end_index])
 
     #  Compile the model with custom compiling settings
-    # TODO remove binary cross
     model.compile(optimizer=tf.keras.optimizers.Nadam(), loss=custom_loss_fn,
-                  metrics=[tf.keras.metrics.BinaryCrossentropy(name="bn_cross"), tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")])
+                  metrics=[tf.keras.metrics.Recall(name="recall"), tf.keras.metrics.Precision(name="precision")])
     model.summary()
 
     return model

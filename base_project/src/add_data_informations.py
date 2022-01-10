@@ -9,6 +9,12 @@ import nltk
 
 
 def add_exact_match(dataframe):
+    """
+    Take a dataframe as input and return the same dataframe with a column indicating whenever a word in the context
+    appears in the current query. I.e.
+           query                            context                     exact_match
+    "Where is the cat?"              "The cat is on the table"     [1, 1, 1, 0, 1, 0]
+    """
     print()
     print("Add exact match. It takes a while...")
     match_column = []
@@ -24,6 +30,9 @@ def add_exact_match(dataframe):
 
 
 def add_POS_tagging(dataframe):
+    """
+    Return a dataframe with one more column containing the POS tagging of the context
+    """
     def apply_pos_tagging(x):
         doc = nltk.word_tokenize(x)
         tag_list = nltk.pos_tag(doc)
@@ -49,6 +58,9 @@ def add_POS_tagging(dataframe):
 
 
 def add_data_informations(training_df, validation_df, test_df):
+    """
+    Adding information which can help the neural model to learn general patterns
+    """
     training_df = add_exact_match(training_df)
     training_df = add_POS_tagging(training_df)
     print()

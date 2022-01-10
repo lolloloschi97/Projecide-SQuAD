@@ -6,8 +6,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from matplotlib import pyplot as plt
 
 TOP_K = 5
-N_UNIQUE_QUESTIONS = 50           # Nedeed for time/memory reasons
-N_UNIQUE_CONTEXTS = 3000            # Nedeed for time/memory reasons
+N_UNIQUE_QUESTIONS = 5           # Nedeed for time/memory reasons
+N_UNIQUE_CONTEXTS = 100            # Nedeed for time/memory reasons
 
 
 class Plotter:
@@ -109,6 +109,10 @@ def tf_idf_ir(training_df, testing_df):
     # Fit the tf-idf vectorizer on the training contexts
     tf_idf_vectorizer = TfidfVectorizer()
     tf_idf_vectorizer.fit(list(contexts_train_np))      # Fit on the whole training context
+
+    pickle.dump(tf_idf_vectorizer, open(UTILS_ROOT + 'tfidf.pickle', 'wb'))
+
+    # tf_idf_vectorizer = pickle.load(open(UTILS_ROOT + 'tfidf.pickle', 'rb'))
 
     ### TEST ###
     print("Computing tests...")

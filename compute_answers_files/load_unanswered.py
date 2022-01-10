@@ -24,7 +24,7 @@ def json_to_dataframe(file_path):
             file = json.loads(open(file_path, encoding="utf-8").read())
         except:
             print("File encoding is not UTF-8")
-            raise
+            raise FileNotFoundError("File not Windows-1252 nor utf-8 or file not found.")
 
     print("SUCCESS! Processing...")
 
@@ -34,10 +34,10 @@ def json_to_dataframe(file_path):
     paragraph_df = pd.json_normalize(file, nested_tags[:-1])  # each 'paragraphs' consists of 'context' and 'qas'
 
     #  combining it into single dataframe
-    context_values_column = np.repeat(paragraph_df['context'].values, paragraph_df[
-        'qas'].str.len())  # duplicate a context many times as the number of questions
-    qas_df[
-        'context'] = context_values_column  # add the 'context' column to each question-> 'question', 'index', 'context'
+    # duplicate a context many times as the number of questions
+    context_values_column = np.repeat(paragraph_df['context'].values, paragraph_df['qas'].str.len())
+    # add the 'context' column to each question-> 'question', 'index', 'context'
+    qas_df['context'] = context_values_column
     # indexes must be aligned before merging the columns
     dataframe = qas_df[['id', 'question', 'context']].set_index(
         'id').reset_index()  # merge the columns 'question', 'index', 'context'
@@ -48,5 +48,8 @@ def json_to_dataframe(file_path):
 
 
 def load_dataframe(file_path):
+    """
+    Load a dataframe from a SQuAD like json file
+    """
     cwd = os.getcwd()
     return json_to_dataframe(cwd + file_path)

@@ -192,6 +192,10 @@ def exact_match_to_numpy(exact_match, context_len):
 
 
 def data_conversion(input_set):
+    """
+    Convert a dataframe in several numpy array ready for the Neural Network. It includes the one hot encoding and
+    the needed padding to match the pre-trained model shapes.
+    """
     x_question, x_context, x_match, x_pos = extract_numpy_structures(input_set)
     cwd = os.getcwd()
     with open(cwd + UTILS_ROOT + 'tokenizer_x.pickle', 'rb') as handle:
@@ -203,10 +207,10 @@ def data_conversion(input_set):
     print("Data conversion...")
 
     # Test
-    x_context = convert_text(x_context, tokenizer_x, False, MAX_SEQ_LENGTH_X_CONTEXT)
-    x_question = convert_text(x_question, tokenizer_x, False, MAX_SEQ_LENGTH_X_CONTEXT)
-    x_pos = convert_text(x_pos, tokenizer_pos, False, MAX_SEQ_LENGTH_X_CONTEXT)
-    x_match = exact_match_to_numpy(x_match, MAX_SEQ_LENGTH_X_CONTEXT)
+    x_context = convert_text(x_context, tokenizer_x, False, MAX_LENGTH_CONTEXT)
+    x_question = convert_text(x_question, tokenizer_x, False, MAX_LENGTH_QUESTION)
+    x_pos = convert_text(x_pos, tokenizer_pos, False, MAX_LENGTH_CONTEXT)
+    x_match = exact_match_to_numpy(x_match, MAX_LENGTH_CONTEXT)
     print('Input context shape: ', x_context.shape)
     print('Input POS shape: ', x_pos.shape)
     print('Input question shape: ', x_question.shape)

@@ -24,6 +24,9 @@ class DataGenerator(tf.keras.utils.Sequence):
 
 
 def training(model, resume, x_train_question, x_train_context, x_train_context_pos, x_train_context_exact_match, y_train_start_enc, y_train_end_enc, x_val_question, x_val_context, x_val_context_pos, x_val_context_exact_match, y_val_start_enc, y_val_end_enc):
+    """
+    Train the model using a DataGenerator in order to load only one batch at the time on the memory. Save the model and keep checkpoints to restore the training in case of crash.
+    """
     training_generator = DataGenerator((x_train_context, x_train_context_pos, x_train_context_exact_match, x_train_question), (y_train_start_enc, y_train_end_enc), BATCH_SIZE)
     validation_generator = DataGenerator((x_val_context, x_val_context_pos, x_val_context_exact_match, x_val_question), (y_val_start_enc, y_val_end_enc), BATCH_SIZE)
     checkpoint_filepath = UTILS_ROOT + '/tmp/checkpoint'

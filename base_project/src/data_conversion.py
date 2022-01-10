@@ -235,6 +235,9 @@ def exact_match_to_numpy(exact_match, context_len):
 
 
 def data_conversion(train_set, val_set, test_set, load):
+    """
+    Prepare the data in numpy arrays for the neural networks.
+    """
     x_train_question, x_train_context, x_train_match, x_train_pos, y_train_answer_start, y_train_answer_end, \
     x_val_question, x_val_context, x_val_match, x_val_pos, y_val_answer_start, y_val_answer_end, \
     x_test_question, x_test_context, x_test_match, x_test_pos, y_test_answer_start, y_test_answer_end = extract_numpy_structures(
