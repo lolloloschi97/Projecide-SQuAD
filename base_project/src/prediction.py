@@ -64,10 +64,13 @@ def make_predictions(test_df, x_test_context, x_test_context_pos, x_test_context
             # extract a sentence from indexes
             sentence_extraction = ' '.join((test_df.loc[sample_id, 'context'].split(' '))[int(couple[0]):int(couple[1]) + 1])
             sentence_encoding = nlp(remove_stopwords(sentence_extraction))
-            sim = question_encoding.similarity(sentence_encoding)
-            if sim > best_sim:
-                best_sim = sim
-                best_couple = couple
+            try:
+                sim = question_encoding.similarity(sentence_encoding)
+                if sim > best_sim:
+                    best_sim = sim
+                    best_couple = couple
+            except UserWarning:
+                pass
         best_couples_list.append(best_couple)
     return best_couples_list, predicted_start_indexes, predicted_end_indexes
 
@@ -83,8 +86,8 @@ def evaluate(predicted_start_indexes, predicted_end_indexes, y_test_start_index,
             start_positive += 1
         if y_test_end_index[i] in predicted_end_indexes[i]:
             end_positive += 1
-    print("Recall in Top-4, start index:", start_positive/len(y_test_end_index))
-    print("Recall in Top-4, end index:", end_positive/len(y_test_end_index))
+    print("Precision in Top-4, start index:", start_positive/len(y_test_end_index))
+    print("Precision in Top-4, end index:", end_positive/len(y_test_end_index))
 
 
 def predict_and_evaluate(test_df, x_test_context, x_test_context_pos, x_test_context_exact_match, x_test_question,

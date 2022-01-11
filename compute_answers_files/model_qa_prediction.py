@@ -63,7 +63,7 @@ def remove_stopwords(text: str) -> str:
 def make_predictions(model, input_df, x_input_context, x_input_pos_enc, x_input_match, x_input_question):
 
     """
-    Make PRED_WINDOW predictions and save the TOP_K probabilities indexes
+    Predict a probability for each sample with the pre-trained model
     """
     print("Make predictions...")
     y_start, y_end = model.predict((x_input_context, x_input_pos_enc, x_input_match, x_input_question))

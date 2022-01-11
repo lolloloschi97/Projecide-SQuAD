@@ -99,12 +99,13 @@ folder are included also the test set data (original and predict) to use it.
 ```
 QA task, top-4 proposals, results:
 
-"exact": 0.9256123715995034,
-"f1": 21.46392724461162,
+"exact": 1.24167513263348,
+"f1": 23.465646450806872,
 "total": 8859,
-"HasAns_exact": 0.9256123715995034,
-"HasAns_f1": 21.46392724461162,
+"HasAns_exact": 1.24167513263348,
+"HasAns_f1": 23.465646450806872,
 "HasAns_total": 8859
+
 ```
 
 Several hyper parameters could be change in the dev-code with a more powerful hardware.
