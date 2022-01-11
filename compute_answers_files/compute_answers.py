@@ -43,7 +43,7 @@ def main():
         predictions_dict = predict(model, input_df, x_input_context, x_input_pos_enc, x_input_match, x_input_question)
         # save
         cwd = os.getcwd()
-        with open(cwd + OUTPUT_FILE_FOLDER + OPTS.inputfile.split('.')[0] + "_answers_no_ir.txt", 'w+') as file:
+        with open(cwd + OUTPUT_FILE_FOLDER + OPTS.inputfile.split('.')[0] + "_answers_no_ir.json", 'w+') as file:
             file.write(json.dumps(dict(predictions_dict)))
     else:
         #       IR + QA pipeline
@@ -69,7 +69,7 @@ def main():
         predictions_dict = choose_best_prediction_proposal(top_k_predictions_dict, complete_input_df)
         # save
         cwd = os.getcwd()
-        with open(cwd + OUTPUT_FILE_FOLDER + OPTS.inputfile.split('.')[0] + "_answers_ir.txt", 'w+') as file:
+        with open(cwd + OUTPUT_FILE_FOLDER + OPTS.inputfile.split('.')[0] + "_answers_ir.json", 'w+') as file:
             file.write(json.dumps(predictions_dict))
 
     print("RESULTS SAVED in /predictions/out/")

@@ -12,8 +12,8 @@ from hyper_param import *
 from keras.utils.np_utils import to_categorical
 
 
-LOAD_PICKLES = False     # FALSE first time
-TRAINING = True
+LOAD_PICKLES = True     # FALSE first time
+TRAINING = False
 RESUME_TRAINING = False
 
 

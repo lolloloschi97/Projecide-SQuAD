@@ -67,13 +67,13 @@ def make_predictions(model, input_df, x_input_context, x_input_pos_enc, x_input_
     """
     print("Make predictions...")
     y_start, y_end = model.predict((x_input_context, x_input_pos_enc, x_input_match, x_input_question))
-    start_results = []
-    end_results = []
+    predicted_start_indexes = []
+    predicted_end_indexes = []
     for i in range(len(input_df)):
         indexes_start = np.argsort(y_start[i, :])[-TOP_K_ANSWERS:]
         indexes_end = np.argsort(y_end[i, :])[-TOP_K_ANSWERS:]
-        start_results.append(indexes_start)
-        end_results.append(indexes_end)
+        predicted_start_indexes.append(indexes_start)
+        predicted_end_indexes.append(indexes_end)
 
     """
     Create all the possible [start, end] indexes for each context picked from the TOP_K starts and ends.
@@ -84,8 +84,8 @@ def make_predictions(model, input_df, x_input_context, x_input_pos_enc, x_input_
         sample_candidates = []
         for i in range(TOP_K_ANSWERS):
             for j in range(TOP_K_ANSWERS):
-                if start_results[sample_id][i] <= end_results[sample_id][j] and end_results[sample_id][j] - start_results[sample_id][i] < MAX_ANSWER_LEN:
-                    sample_candidates.append([start_results[sample_id][i], end_results[sample_id][j]])
+                if predicted_start_indexes[sample_id][i] <= predicted_end_indexes[sample_id][j] and predicted_end_indexes[sample_id][j] - predicted_start_indexes[sample_id][i] < MAX_ANSWER_LEN:
+                    sample_candidates.append([predicted_start_indexes[sample_id][i], predicted_end_indexes[sample_id][j]])
         span_candidates.append(sample_candidates)
 
     """
@@ -95,12 +95,14 @@ def make_predictions(model, input_df, x_input_context, x_input_pos_enc, x_input_
     best_couples_list = []
     for sample_id in tqdm.tqdm(range(len(input_df))):
         question_encoding = nlp(remove_stopwords(input_df.loc[sample_id, 'question']))
-        best_couple = [0, 0]
+        best_couple = [0, 0]    # starting couple only for debug purposes
         best_sim = 0
         for couple in span_candidates[sample_id]:
+            # extract a sentence from indexes
             sentence_extraction = ' '.join((input_df.loc[sample_id, 'context'].split(' '))[int(couple[0]):int(couple[1]) + 1])
             sentence_encoding = nlp(remove_stopwords(sentence_extraction))
             try:
+                # verify the similarity between the current answer and the question
                 sim = question_encoding.similarity(sentence_encoding)
                 if sim > best_sim:
                     best_sim = sim

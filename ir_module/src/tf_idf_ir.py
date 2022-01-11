@@ -5,9 +5,9 @@ from scipy.spatial.distance import jensenshannon
 from sklearn.feature_extraction.text import TfidfVectorizer
 from matplotlib import pyplot as plt
 
-TOP_K = 5
-N_UNIQUE_QUESTIONS = 5           # Nedeed for time/memory reasons
-N_UNIQUE_CONTEXTS = 100            # Nedeed for time/memory reasons
+TOP_K = 10
+N_UNIQUE_QUESTIONS = 50           # Nedeed for time/memory reasons
+N_UNIQUE_CONTEXTS = 1000            # Nedeed for time/memory reasons
 
 
 class Plotter:
@@ -110,8 +110,7 @@ def tf_idf_ir(training_df, testing_df):
     tf_idf_vectorizer = TfidfVectorizer()
     tf_idf_vectorizer.fit(list(contexts_train_np))      # Fit on the whole training context
 
-    pickle.dump(tf_idf_vectorizer, open(UTILS_ROOT + 'tfidf.pickle', 'wb'))
-
+    # pickle.dump(tf_idf_vectorizer, open(UTILS_ROOT + 'tfidf.pickle', 'wb'))
     # tf_idf_vectorizer = pickle.load(open(UTILS_ROOT + 'tfidf.pickle', 'rb'))
 
     ### TEST ###
@@ -120,7 +119,7 @@ def tf_idf_ir(training_df, testing_df):
     passages_test_tf_idf = tf_idf_vectorizer.transform(list(contexts_test_np))
     questions_test_tf_idf = tf_idf_vectorizer.transform(list(questions_test_np))
 
-    cosine_best_indexes_test = cosine_similarity_metric(questions_test_tf_idf, passages_test_tf_idf)
+    cosine_best_indexes_test = cosine_similarity_metric(questions_test_tf_idf[:N_UNIQUE_QUESTIONS], passages_test_tf_idf[:N_UNIQUE_CONTEXTS])
     jensenshannon_best_indexes_test = jensenshannon_metric(questions_test_tf_idf[:N_UNIQUE_QUESTIONS], passages_test_tf_idf[:N_UNIQUE_CONTEXTS])
 
     plotter_test = Plotter(testing_df, contexts_test_np)

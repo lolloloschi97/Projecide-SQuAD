@@ -19,7 +19,7 @@ and details.
 * [About the Project](#about-the-project)
 * [Prerequisites](#prerequisites)
 * [Usage](#usage)
-* [General info](#general-info)
+* [Conclusions](#conclusions)
 * [Authors](#authors)
 
 
@@ -88,11 +88,24 @@ This command will return a .txt file in ```/compute_answers_files/predicitons/ou
 document retrieval. If Jensen Shannon is active, we suggest no more than 4. In case of Cosine Similarity at least 3. 
   Default 5.
 
-## General Info
+## Conclusions
 The files ```/base_project/src/master_qa.py``` and  ```/ir_module/src/master_ir.py``` manage respectively the developing
 phase of Question Answering and Information Retrieval. From the global flag is possible to setup new training or create
 new datasets splits and cleaning. The user code in ```/compute_answers_files/``` contains everything is needed to 
-conduce the experiments with the best settings we have found.
+conduce the experiments with the best settings we have found. 
+
+Folder ```/evaluate_methods/``` contains the ```evaluate.py```, the official SQuAD evaluation script. In the same
+folder are included also the test set data (original and predict) to use it.
+```
+QA task, top-4 proposals, results:
+
+"exact": 0.9256123715995034,
+"f1": 21.46392724461162,
+"total": 8859,
+"HasAns_exact": 0.9256123715995034,
+"HasAns_f1": 21.46392724461162,
+"HasAns_total": 8859
+```
 
 Several hyper parameters could be change in the dev-code with a more powerful hardware.
 
