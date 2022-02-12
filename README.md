@@ -1,5 +1,5 @@
 # Projecide SQuAD
-Question Answering + Information Retrieval project based on SQuAD Dataset.
+Question Answering + Information Retrieval project based on SQuAD Dataset. **Check the pdf report for details**.
 
 We  aim  at  building a Question Answering NLP tool based on SQuAD Dataset. Moreover we introduced an Information 
 Retrieval module which allows the user to perform this preliminary step in case question and contexts are not already
