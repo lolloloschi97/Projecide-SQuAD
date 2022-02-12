@@ -53,7 +53,7 @@ implementation of the models:
 
 ## Usage
 The projecide_squad folder contains an already set up virtual-env Python 3.9 with all the dependency and libraries 
-included. It's the easiest plug-and-play configuration we figured it out.
+included. It's the easiest plug-and-play configuration we figured it out. For the pre-trained model and pickle archives, contact us.
 
 ### Setup the venv
 Activate venv
