@@ -1,4 +1,4 @@
-# Projecide SQuAD
+# Projecide SQuAD - An Hybrid Question Answering System
 Question Answering + Information Retrieval project based on SQuAD Dataset. **Check the pdf report for details**.
 
 We  aim  at  building a Question Answering NLP tool based on SQuAD Dataset. Moreover we introduced an Information 
