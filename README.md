@@ -110,7 +110,7 @@ QA task, top-4 proposals, results:
 
 Several hyper parameters could be change in the dev-code with a more powerful hardware.
 
-## Authors
-* [**Alessandro Maggio**](alessandro.maggio5@studio.unibo.it)
-* [**Irene Rachele Lavopa**](irenerachele.lavopa@studio.unibo.it)
-* [**Lorenzo Loschi**](lorenzo.loschi@studio.unibo.it)
+## Contribution
+* [**Alessandro Maggio**](https://github.com/AleTM1)
+* [**Irene Rachele Lavopa**](https://github.com/irenelavopa)
+* [**Lorenzo Loschi**](https://github.com/lolloloschi97)
